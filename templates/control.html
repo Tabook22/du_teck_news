@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Panel - Change Titles and Logo</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-top:60px;
+        }
+        .sidebar {
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            padding: 15px;
+            margin-right: 20px;
+            border: 1px solid #ddd;
+        }
+        .sidebar h5 {
+            margin-bottom: 20px;
+        }
+        .sidebar ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .sidebar ul li {
+            margin-bottom: 10px;
+        }
+        .sidebar ul li a {
+            text-decoration: none;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .sidebar ul li a:hover {
+            text-decoration: underline;
+        }
+        .content-section {
+            display: none;  /* Initially hide all sections */
+        }
+        .content-section.active {
+            display: block; /* Show the active section */
+        }
+        .btn-primary{
+            color:#fff;
+            background-color: #343A40;
+            border-color: #8a8c8f;
+        }
+        .btn-primary:hover{
+           background-color: #28a745 !important;
+        }
+
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">News Room</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ai-magazine">AI News Magazine</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/control">Control Panel</a>
+                </li>
+                <!-- Logout Link -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar Section -->
+            <div class="col-md-3">
+                <div class="sidebar">
+                    <h5>Control List</h5>
+                    <ul>
+                        <li><a id="logo-link">Change Logo</a></li>
+                        <li><a id="titles-link">Change Magazine Titles</a></li>
+                        <li><a id="home-title-link">Change Home Title and Introduction</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Control Form Section -->
+            <div class="col-md-9">
+                <h1>Control Panel</h1>
+                <p>Use this page to update the magazine's titles and logo.</p>
+
+                {% if message %}
+                <div class="alert alert-success">
+                    {{ message }}
+                </div>
+                {% endif %}
+
+                <!-- Change Logo Form -->
+                <div id="logo-section" class="content-section">
+                    <h2>Change Logo</h2>
+                    <form action="/control" method="POST" enctype="multipart/form-data">
+                        <!-- Upload New Logo -->
+                        <div class="form-group">
+                            <label for="logo_image">Upload New Logo:</label>
+                            <input type="file" class="form-control" id="logo_image" name="logo_image" accept="image/*">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Logo</button>
+                    </form>
+                </div>
+
+                <!-- Change Magazine Titles Form -->
+                <div id="titles-section" class="content-section">
+                    <h2>Change Magazine Titles</h2>
+                    <form action="/control" method="POST">
+                        <!-- Department Name -->
+                        <div class="form-group">
+                            <label for="department_name">Department Name:</label>
+                            <input type="text" class="form-control" id="department_name" name="department_name" value="{{ department_name }}" required>
+                        </div>
+
+                        <!-- Magazine Title -->
+                        <div class="form-group">
+                            <label for="magazine_title">Magazine Title:</label>
+                            <input type="text" class="form-control" id="magazine_title" name="magazine_title" value="{{ magazine_title }}" required>
+                        </div>
+
+                        <!-- News Subtitle -->
+                        <div class="form-group">
+                            <label for="news_subtitle">News Subtitle:</label>
+                            <input type="text" class="form-control" id="news_subtitle" name="news_subtitle" value="{{ news_subtitle }}" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Titles</button>
+                    </form>
+                </div>
+
+                <!-- Change Home Title Form -->
+                <div id="home-title-section" class="content-section">
+                    <h2>Change Home Title and Introduction</h2>
+                    <form action="/control" method="POST">
+                        <!-- Home Title -->
+                        <div class="form-group">
+                            <label for="home_title">Home Page Title:</label>
+                            <input type="text" class="form-control" id="home_title" name="home_title" value="{{ home_title }}" required>
+                        </div>
+
+                        <!-- Home Subtitle -->
+                        <div class="form-group">
+                            <label for="home_subtitle">Home Page Subtitle:</label>
+                            <input type="text" class="form-control" id="home_subtitle" name="home_subtitle" value="{{ home_subtitle }}" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Update Home Titles</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // JavaScript to toggle between sections
+        document.getElementById('logo-link').addEventListener('click', function() {
+            toggleSection('logo-section');
+        });
+        document.getElementById('titles-link').addEventListener('click', function() {
+            toggleSection('titles-section');
+        });
+        document.getElementById('home-title-link').addEventListener('click', function() {
+            toggleSection('home-title-section');
+        });
+
+        function toggleSection(sectionId) {
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => {
+                section.classList.remove('active'); // Hide all sections
+            });
+            document.getElementById(sectionId).classList.add('active'); // Show the clicked section
+        }
+        
+        // Show the first section by default
+        toggleSection('logo-section');
+    </script>
+</body>
+</html>

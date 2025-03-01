@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved News List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Link to the external JavaScript file -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+        .news-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            padding: 1rem;
+            border-radius: 20px;
+            border: 1px solid #333
+        }
+        .news-image {
+            max-width: 100px;
+            margin-right: 15px;
+        }
+        .news-details {
+            flex: 1;
+        }
+        .news-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        .btn-remove {
+            background-color: red;
+            color: white;
+        }
+        .news-date-header {
+            font-size: 1.5em;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #343a40;
+        }
+        .select-checkbox {
+            margin-right: 10px;
+        }
+        #select-all {
+            margin-bottom: 15px;
+        }
+        .btn-delete-selected {
+            margin-left: 20px;
+            color: white;
+            background-color: red;
+        }
+        .news-location {
+            margin-left: 15px;
+        }
+    </style>
+</head>
+<body>
+     <!-- Navigation Bar -->
+     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="/">News Room</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/ai-magazine">AI News Magazine</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/control">Control Panel</a>
+                </li>
+                <!-- Logout Link -->
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-5">
+        <!-- Go Back Button -->
+        <div class="mb-4">
+            <button onclick="goBack()" class="btn btn-secondary">Go Back</button>
+        </div>
+
+        <div class="d-flex align-items-center mb-3">
+            <!-- Show total number of saved news items -->
+            <h3 class="mr-2">Saved News List</h3>
+            <span class="badge badge-pill badge-warning" style="font-size: 1.5rem;" id="totalSavedNews">
+                {{ total_saved_news }}
+            </span>
+        </div>
+
+        <!-- Select All and Delete Selected -->
+        <div>
+            <input type="checkbox" id="select-all"> Select All
+            <button class="btn btn-danger btn-delete-selected" id="deleteSelectedBtn" onclick="confirmDelete('multiple')"> 
+                <i class="fas fa-trash"></i> Delete Selected News 
+            </button>
+            <!-- Button for sending selected news to email list -->
+            <button class="btn btn-warning btn-send-email" id="sendEmailBtn" onclick="sendSelectedNews()"> 
+                <i class="fas fa-envelope"></i> Send selected news to my email list
+            </button>
+            <!-- Button for creating AI News Magazine -->
+            <button class="btn btn-success btn-create-magazine" id="createMagazineBtn" onclick="createAIMagazine()"> 
+                <i class="fas fa-newspaper"></i> Create AI News Magazine
+            </button>
+        </div>
+
+        <div id="alert-message" class="alert alert-success" style="display:none;"></div>
+
+        <div class="saved-news-list">
+            {% for date, news_group in news_dict.items() %}
+            <div>
+                <!-- Group by Date -->
+                <div class="news-date-header">{{ date }}</div>
+                {% for news in news_group %}
+                <div class="news-item" id="news-{{ news.id }}">
+                    <!-- Checkbox to select news -->
+                    <input type="checkbox" class="select-checkbox" value="{{ news.id }}" id="checkbox-{{ news.id }}">
+                
+                    <!-- News Image -->
+                    <img src="{{ news.news_image }}" alt="News Image" class="news-image">
+                    
+                    <!-- News Details -->
+                    <div class="news-details">
+                        <h5 class="news-title">{{ news.news_title }}</h5>
+                        <p>{{ news.news_summary }}  <a href="{{ news.news_url }}" class="" target="_blank"><span style="color:red; font-weight:bold;">>> Read More</span></a></p>
+                        <!-- Show tick icon if the news is saved in the AI magazine -->
+                        {% if news.news_url in saved_news_urls %}
+                        <i class="fas fa-check-circle" style="color:green; font-size: 1.5em; margin-left: 10px;"></i>
+                        {% endif %}
+                
+                        <!-- Radio buttons for selecting news location -->
+                        <div class="news-location">
+                            <label>
+                                <input type="radio" name="location-{{ news.id }}" value="Top News" 
+                                {% if news.news_location and news.news_location|trim == "Top News" %}checked{% endif %}
+                                onchange="checkCheckbox('{{ news.id }}')"> Top News
+                            </label>
+                            <label>
+                                <input type="radio" name="location-{{ news.id }}" value="Second News" 
+                                {% if news.news_location and news.news_location|trim == "Second News" %}checked{% endif %}
+                                onchange="checkCheckbox('{{ news.id }}')"> Second News
+                            </label>
+                            <label>
+                                <input type="radio" name="location-{{ news.id }}" value="Sidebar List" 
+                                {% if news.news_location and news.news_location|trim == "Sidebar List" %}checked{% endif %}
+                                onchange="checkCheckbox('{{ news.id }}')"> Sidebar List
+                            </label>
+                            <label>
+                                <input type="radio" name="location-{{ news.id }}" value="Advs" 
+                                {% if news.news_location and news.news_location|trim == "Advs" %}checked{% endif %}
+                                onchange="checkCheckbox('{{ news.id }}')"> Advs
+                            </label>
+                            <label>
+                                <input type="radio" name="location-{{ news.id }}" value="Announcement" 
+                                {% if news.news_location and news.news_location|trim == "Announcement" %}checked{% endif %}
+                                onchange="checkCheckbox('{{ news.id }}')"> Announcement
+                            </label>
+                        </div>
+                
+                        <!-- Remove from List Button -->
+                        <button class="btn btn-danger ml-3" onclick="removeNews('{{ news.id }}')">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Bootstrap Modal for confirmation -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">Confirm Removal</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <span id="delete-message"></span>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!-- Bootstrap Modal for Top News Confirmation -->
+<div class="modal fade" id="topNewsConfirmationModal" tabindex="-1" role="dialog" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirm Change</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          Top News is already selected. Are you sure you want to update it?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal" onclick="cancelTopNewsChange()">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="confirmTopNewsChange()">Yes, Update</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <script>
+        // Function to check the checkbox when a radio button is selected
+        function checkCheckbox(newsId) {
+            document.getElementById('checkbox-' + newsId).checked = true;
+        }
+
+        // Function to create AI News Magazine
+        function createAIMagazine() {
+            const selectedNews = [];
+            const newsLocations = {};
+
+            // Collect the selected checkboxes and radio button values
+            $('.select-checkbox:checked').each(function() {
+                const newsId = $(this).val();
+                selectedNews.push(newsId);
+
+                // Get the selected location from the radio buttons for each news item
+                const selectedLocation = $(`input[name="location-${newsId}"]:checked`).val();
+                if (selectedLocation) {
+                    newsLocations[newsId] = selectedLocation;
+                } else {
+                    alert('Please select a location for all selected news.');
+                    return;
+                }
+            });
+
+            if (selectedNews.length === 0) {
+                alert('Please select news to create the magazine.');
+                return;
+            }
+
+            // AJAX call to create AI News Magazine
+            $.ajax({
+                url: '/create-ai-magazine',
+                type: 'POST',
+                data: { 
+                    selectedNews: selectedNews, 
+                    newsLocations: JSON.stringify(newsLocations)  // Send as a JSON string
+                },
+                success: function(response) {
+                    // Show a success message
+                    $("#alert-message").html(response.message).show();
+                    setTimeout(() => {
+                        $("#alert-message").hide();
+                    }, 3000);
+                },
+                error: function(xhr) {
+                    alert('Failed to create the AI News Magazine');
+                }
+            });
+        }
+
+        // Individual news removal function
+function removeNews(newsId) {
+    if (!confirm('Are you sure you want to remove this news item?')) return;
+
+    $.ajax({
+        url: '/remove-news',
+        type: 'POST',
+        data: {
+            news_id: newsId  // Make sure you're sending the news_id correctly
+        },
+        success: function(response) {
+            // Remove the news item from the list
+            $("#news-" + newsId).remove();
+
+            // Show success alert
+            $("#alert-message").html(response.message).show();
+
+            // Hide the alert message after 3 seconds
+            setTimeout(function() {
+                $("#alert-message").hide();
+            }, 3000);
+
+            // Update the total saved news count
+            updateTotalSavedNewsCount(response.total_saved_news);
+        },
+        error: function(xhr) {
+            alert('Failed to remove the news');
+        }
+    });
+}
+
+// Function to update the total saved news count
+function updateTotalSavedNewsCount(count) {
+    document.getElementById('totalSavedNews').innerText = count;
+}
+
+// Select or Deselect all checkboxes
+// Select or Deselect all checkboxes
+$('#select-all').on('click', function () {
+    const checked = this.checked;
+    
+    $('.select-checkbox').each(function () {
+        const newsId = $(this).val();
+        
+        if (checked) {
+            // If "Select All" is checked, check all checkboxes
+            this.checked = true;
+        } else {
+            // If "Select All" is unchecked, uncheck only those without checked radio buttons
+            const hasCheckedRadioButton = $(`input[name="location-${newsId}"]:checked`).length > 0;
+            if (!hasCheckedRadioButton) {
+                this.checked = false;
+            }
+        }
+    });
+});
+
+    // Function to open confirmation modal
+    function confirmDelete(type, newsId = null, newsTitle = null) {
+        deleteType = type;
+        newsIdToRemove = newsId;
+
+        if (type === 'multiple') {
+            const selectedCount = $('.select-checkbox:checked').length;
+            if (selectedCount === 0) {
+                alert('No news selected');
+                return;
+            }
+            document.getElementById('delete-message').innerHTML = `You are about to delete ${selectedCount} selected news. Are you sure?`;
+        } else if (type === 'single') {
+            document.getElementById('delete-message').innerHTML = `You are about to delete "${newsTitle}". Are you sure?`;
+        }
+
+        // Show the confirmation modal
+        $('#confirmModal').modal('show');
+    }
+
+    // Confirm delete action
+    $('#confirmDeleteBtn').on('click', function () {
+        if (deleteType === 'single') {
+            removeNews(newsIdToRemove);  // Call removeNews with the selected news ID
+        } else if (deleteType === 'multiple') {
+            deleteSelectedNews();  // Call deleteSelectedNews for multiple news items
+        }
+    });
+
+    // Function to delete selected news
+    function deleteSelectedNews() {
+        const selectedNews = [];
+        $('.select-checkbox:checked').each(function () {
+            selectedNews.push($(this).val());
+        });
+
+        if (selectedNews.length === 0) {
+            alert("No news selected for deletion.");
+            return;
+        }
+
+        // AJAX call to delete selected news
+        $.ajax({
+            url: '/delete_selected_news',
+            type: 'POST',
+            data: { selectedNews: selectedNews },
+            success: function (response) {
+                // Remove selected news from the DOM
+                selectedNews.forEach(id => {
+                    $('#news-' + id).remove();
+                });
+
+                // Update total news count and show message
+                handleResponse(response);
+
+                // Hide the modal after successful deletion
+                $('#confirmModal').modal('hide');
+            },
+            error: function (xhr) {
+                alert('Failed to delete selected news');
+            }
+        });
+    }
+
+    
+    // Function to update the total saved news count
+    function updateTotalSavedNewsCount(count) {
+        document.getElementById('totalSavedNews').innerText = count;
+    }
+
+    // Function to handle the response after deleting or adding news
+    function handleResponse(response) {
+        const message = response.message;
+        const totalSavedNews = response.total_saved_news;
+
+        // Update the total saved news count
+        updateTotalSavedNewsCount(totalSavedNews);
+
+        // Show success or failure message
+        $("#alert-message").html(message).show();
+
+        // Hide the message after a few seconds
+        setTimeout(() => {
+            $("#alert-message").hide();
+        }, 3000);
+    }
+    // change the background of the div with class name "news-item"
+// Function to handle checkbox change
+$(document).ready(function() {
+    // Listen for changes on checkboxes with the class "select-checkbox"
+    $('.select-checkbox').on('change', function() {
+        // Find the parent div with class "news-item"
+        var parentDiv = $(this).closest('.news-item');
+        
+        // If checkbox is checked, change background to light gray
+        if ($(this).is(':checked')) {
+            parentDiv.css('background-color', '#f3f3f3');
+        } 
+        // If checkbox is unchecked, revert the background to white
+        else {
+            parentDiv.css('background-color', 'white');
+        }
+    });
+});
+
+// searhing for any checkbox if it is checked then its parent background will be turn to ligh gray:
+window.onload = function() {
+    // Get all checkboxes with the class "select-checkbox"
+    const checkboxes = document.querySelectorAll('.select-checkbox');
+
+    // Loop through all checkboxes
+    checkboxes.forEach(function(checkbox) {
+        // Check if the checkbox is checked
+        if (checkbox.checked) {
+            // Find the parent div with the class "news-item" and set its background to light gray
+            checkbox.closest('.news-item').style.backgroundColor = '#f3f3f3';
+        }
+    });
+};
+
+
+// Function to check the checkbox when a radio button is selected
+function checkCheckbox(newsId) {
+    // Check the checkbox
+    var checkbox = document.getElementById('checkbox-' + newsId);
+    checkbox.checked = true;
+
+    // Find the parent div with the class 'news-item'
+    var newsItemDiv = checkbox.closest('.news-item');
+    
+    // If the parent div is found, change its background color
+    if (newsItemDiv) {
+        newsItemDiv.style.backgroundColor = '#f3f3f3';
+    } else {
+        console.log('Parent .news-item not found');
+    }
+}
+
+// Function to uncheck the radio buttons when the checkbox is unchecked
+function toggleCheckbox(newsId) {
+        var checkbox = document.getElementById('checkbox-' + newsId);
+
+        // If the checkbox is unchecked, uncheck all the corresponding radio buttons
+        if (!checkbox.checked) {
+            var radioButtons = document.querySelectorAll('input[name="location-' + newsId + '"]');
+            
+            radioButtons.forEach(function(radio) {
+                radio.checked = false;
+            });
+            
+            // Optionally, you can reset the background color if desired
+            var newsItemDiv = checkbox.closest('.news-item');
+            if (newsItemDiv) {
+                newsItemDiv.style.backgroundColor = '#fff'; // Reset to white or original color
+            }
+        }
+    }
+
+    // Attach this function to the checkbox event for each checkbox
+    document.querySelectorAll('.select-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            toggleCheckbox(checkbox.value);
+        });
+    });
+
+// On page load, check the corresponding checkbox if any radio button is checked
+$(document).ready(function() {
+    $('.news-item').each(function() {
+        var newsId = $(this).attr('id').split('-')[1];
+        if ($('input[name="location-' + newsId + '"]:checked').length > 0) {
+            $('#checkbox-' + newsId).prop('checked', true);
+        }
+    });
+});
+
+    </script>
+    
+    <script src="/static/js/top_news_selection.js"></script>
+     <!-- Bootstrap JS and dependencies -->
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+   <!-- Bootstrap CSS 
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>-->
+</body>
+</html>

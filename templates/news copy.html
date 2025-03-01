@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results for "{{ query }}"</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        /* Styles for disabled buttons */
+        .btn.disabled, .btn[disabled] {
+            background-color: #e0e0e0 !important;
+            color: #808080 !important;
+            border: 1px solid #e0e0e0 !important;
+        }
+        .btn i {
+            pointer-events: none;  /* Prevent clicking on the icon itself */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Search Results for "{{ query }}"</h1>
+
+        <!-- Alert message placeholder -->
+        <div id="alert-message" class="alert alert-success" style="display:none;"></div>
+
+        <!-- "View News List" Button to access saved news -->
+        <div class="mb-4">
+            <a href="/saved-news" class="btn btn-info">View Selected News List</a>
+        </div>
+
+        <!-- Search Form -->
+        <form action="/search-news" method="POST" class="mb-4">
+            <div class="input-group">
+                <input type="text" class="form-control" name="query" placeholder="Search for AI news" value="{{ query }}" required>
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="submit">Search Again</button>
+                </div>
+            </div>
+
+            <div class="search-criteria my-3">
+                <label class="mr-3">
+                    <input type="radio" name="timeframe" value="d1" {% if timeframe == "d1" %}checked{% endif %}> Today
+                </label>
+                <label class="mr-3">
+                    <input type="radio" name="timeframe" value="w1" {% if timeframe == "w1" %}checked{% endif %}> This Week
+                </label>
+                <label class="mr-3">
+                    <input type="radio" name="timeframe" value="m1" {% if timeframe == "m1" %}checked{% endif %}> This Month
+                </label>
+                <label>
+                    <input type="radio" name="timeframe" value="y1" {% if timeframe == "y1" %}checked{% endif %}> This Year
+                </label>
+            </div>
+        </form>
+
+        <!-- Display News Items -->
+        <div class="row">
+            {% if news_data %}
+                {% for news in news_data %}
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <!-- News Image -->
+                        {% if news.image_url %}
+                        <img src="{{ news.image_url }}" class="card-img-top" alt="News Image">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300" class="card-img-top" alt="No Image Available">
+                        {% endif %}
+                        
+                        <!-- News Content -->
+                        <div class="card-body">
+                            <h5 class="card-title">{{ news.title }}</h5>
+                            <p class="card-text">{{ news.summary }}</p>
+
+                            <!-- Read More Button -->
+                            <a href="{{ news.link }}" class="btn btn-primary" target="_blank">Read More</a>
+
+                            <!-- Add and Remove Icons -->
+                            <button id="add-icon-{{ news.link }}" class="btn btn-success ml-2" onclick="toggleNews('{{ news.title }}', '{{ news.image_url }}', '{{ news.summary }}', '{{ news.link }}', 'add', '{{ news.link }}')" {% if news.in_list %}disabled{% endif %}>
+                                <i class="fas fa-plus-square"></i>
+                            </button>
+                            <button id="delete-icon-{{ news.link }}" class="btn btn-danger ml-2" onclick="toggleNews('{{ news.title }}', '{{ news.image_url }}', '{{ news.summary }}', '{{ news.link }}', 'remove', '{{ news.link }}')" {% if not news.in_list %}disabled{% endif %}>
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12">
+                    <p>No news articles found. Please try searching again.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Toggle add/remove news functionality
+        function toggleNews(newsTitle, newsImage, newsSummary, newsUrl, action, linkId) {
+            const addButton = document.getElementById(`add-icon-${linkId}`);
+            const deleteButton = document.getElementById(`delete-icon-${linkId}`);
+
+            // AJAX call to add/remove news from the list
+            const data = {
+                news_title: newsTitle,
+                news_image: newsImage,
+                news_summary: newsSummary,
+                news_url: newsUrl,
+                action: action
+            };
+
+            fetch('/toggle-news-list', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: new URLSearchParams(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Show alert message
+                const alertMessage = document.getElementById('alert-message');
+                alertMessage.textContent = data.message;
+                alertMessage.style.display = 'block';
+
+                // Toggle button states and appearance
+                if (action === 'add') {
+                    addButton.disabled = true;
+                    deleteButton.disabled = false;
+                } else {
+                    addButton.disabled = false;
+                    deleteButton.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

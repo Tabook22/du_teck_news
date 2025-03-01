@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News Room - AI News Aggregator</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .logo {
+            max-width: 60px;
+        }
+        .header-section {
+            text-align: center;
+            padding: 50px 0;
+            background-color: #fff;
+            color: #343a40;
+        }
+        .header-section h1 {
+            font-size: 3em;
+            margin-bottom: 0;
+        }
+        .header-section p {
+            font-size: 1.3em;
+        }
+        .search-box {
+            margin-top: 30px;
+        }
+        .btn-top-news {
+            margin-top: 30px;
+        }
+        .website-list {
+            margin-top: 40px;
+        }
+        .website-list h4 {
+            margin-bottom: 20px;
+        }
+        .website-list ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .website-list ul li {
+            margin-bottom: 10px;
+        }
+        .search-criteria {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        .search-criteria label {
+            margin-right: 20px;
+        }
+        .btn-primary{
+            color:#fff;
+            background-color: #343A40;
+            border-color: #8a8c8f;
+          
+        }
+        .btn-primary:hover{
+           background-color: #28a745 !important;
+        }
+
+        .btn-success{
+            background-color: #343A40;
+            border-color: #8a8c8f;
+        }
+    </style>
+</head>
+
+<body>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">{{ home_title }}</a><!-- Company Logo -->
+    <div class="container text-center py-3">
+        <img src="{{ url_for('static', filename='images/new_logo.png') }}" alt="Company Logo" class="logo">
+        <!-- <img src="{{ url_for('static', filename='images/omantel2.png') }}" alt="Dhofar University Logo" class="logo"> -->
+    </div>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/saved-news">Saved News</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/ai-magazine">AI News Magazine</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/control">Control Panel</a>
+            </li>
+            <!-- Logout Link -->
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+    
+
+    <!-- Header Section -->
+    <div class="header-section">
+        <h1>{{ home_title }}</h1>
+        <p>{{ home_subtitle }}</p>
+    </div>
+
+    <!-- Search Box and Button for Random News -->
+    <div class="container search-box text-center">
+        <!-- Search Criteria -->
+        <form action="/search-news" method="POST">
+            <div class="search-criteria">
+                <label>
+                    <input type="radio" name="timeframe" value="d1" checked> Today
+                </label>
+                <label>
+                    <input type="radio" name="timeframe" value="w1"> This Week
+                </label>
+                <label>
+                    <input type="radio" name="timeframe" value="m1"> This Month
+                </label>
+                <label>
+                    <input type="radio" name="timeframe" value="y1"> This Year
+                </label>
+            </div>
+
+            <!-- Search Form -->
+            <div class="form-inline justify-content-center">
+                <input class="form-control mr-2" type="text" name="query" placeholder="Search the latest AI News" required>
+                <button class="btn btn-primary" type="submit">Search</button>
+            </div>
+        </form>
+
+        <!-- Button for Top Random AI News -->
+        <form action="/latest-ai-news" method="POST">
+            <button class="btn btn-success btn-lg btn-top-news" type="submit">Top Random AI News</button>
+        </form>
+    </div>
+
+    <!-- List of Top AI News Websites -->
+    <div class="container website-list">
+        <h4>Top AI News Websites:</h4>
+        <ul class="list-group">
+            <li class="list-group-item"><a href="https://aiweekly.co/" target="_blank">AI Weekly</a></li>
+            <li class="list-group-item"><a href="https://www.theverge.com/ai-artificial-intelligence" target="_blank">The Verge AI</a></li>
+            <li class="list-group-item"><a href="https://www.artificialintelligence-news.com/" target="_blank">AI News</a></li>
+            <li class="list-group-item"><a href="https://aibusiness.com/ml" target="_blank">AI Business</a></li>
+            <li class="list-group-item"><a href="https://venturebeat.com/" target="_blank">VentureBeat</a></li>
+            <li class="list-group-item"><a href="https://www.technologyreview.com/topic/artificial-intelligence/" target="_blank">MIT Technology Review (AI)</a></li>
+            <li class="list-group-item"><a href="https://www.sciencedaily.com/news/computers_math/artificial_intelligence/" target="_blank">Science Daily (AI)</a></li>
+            <li class="list-group-item"><a href="https://www.wired.com/tag/artificial-intelligence/" target="_blank">Wired (AI)</a></li>
+            <li class="list-group-item"><a href="https://www.forbes.com/ai/" target="_blank">Forbes AI</a></li>
+        </ul>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+
+</html>
