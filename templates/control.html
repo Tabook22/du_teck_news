@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Panel - Change Titles and Logo</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
         body {
             background-color: #f8f9fa;
@@ -58,7 +59,32 @@
         .btn-primary:hover{
            background-color: #28a745 !important;
         }
-
+        .sidebar-category {
+            font-weight: bold;
+            margin-top: 20px;
+            color: #495057;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .feature-card {
+            border-radius: 8px;
+            margin-bottom: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 15px;
+            color: #343A40;
+        }
+        .badge-counter {
+            position: relative;
+            top: -2px;
+            margin-left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -93,11 +119,24 @@
             <!-- Sidebar Section -->
             <div class="col-md-3">
                 <div class="sidebar">
-                    <h5>Control List</h5>
+                    <h5>Control Panel</h5>
+                    
+                    <div class="sidebar-category">Basic Settings</div>
                     <ul>
-                        <li><a id="logo-link">Change Logo</a></li>
-                        <li><a id="titles-link">Change Magazine Titles</a></li>
-                        <li><a id="home-title-link">Change Home Title and Introduction</a></li>
+                        <li><a id="logo-link"><i class="far fa-image mr-2"></i>Change Logo</a></li>
+                        <li><a id="titles-link"><i class="fas fa-heading mr-2"></i>Magazine Titles</a></li>
+                        <li><a id="home-title-link"><i class="fas fa-home mr-2"></i>Home Page Content</a></li>
+                    </ul>
+                    
+                    <div class="sidebar-category">Magazine Components</div>
+                    <ul>
+                        <li><a id="highlights-link"><i class="fas fa-chart-bar mr-2"></i>AI Impact Highlights</a></li>
+                        <li><a id="quick-links-link"><i class="fas fa-link mr-2"></i>Quick Links</a></li>
+                    </ul>
+                    
+                    <div class="sidebar-category">News Management</div>
+                    <ul>
+                        <li><a href="/saved-news"><i class="far fa-newspaper mr-2"></i>Saved News</a></li>
                     </ul>
                 </div>
             </div>
@@ -105,13 +144,48 @@
             <!-- Control Form Section -->
             <div class="col-md-9">
                 <h1>Control Panel</h1>
-                <p>Use this page to update the magazine's titles and logo.</p>
+                <p>Manage your magazine settings and components</p>
 
                 {% if message %}
                 <div class="alert alert-success">
                     {{ message }}
                 </div>
                 {% endif %}
+
+                <!-- Welcome Section (Visible when no other section is active) -->
+                <div id="welcome-section" class="content-section">
+                    <div class="jumbotron">
+                        <h2>Welcome to Your Control Panel</h2>
+                        <p class="lead">Select an option from the sidebar to get started.</p>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card feature-card">
+                                <div class="card-body text-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </div>
+                                    <h5 class="card-title">AI Impact Highlights</h5>
+                                    <p class="card-text">Add dynamic metrics and statistics to your AI Magazine.</p>
+                                    <a href="javascript:void(0)" onclick="toggleSection('highlights-section')" class="btn btn-primary">Manage Highlights</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card feature-card">
+                                <div class="card-body text-center">
+                                    <div class="feature-icon">
+                                        <i class="fas fa-link"></i>
+                                    </div>
+                                    <h5 class="card-title">Quick Links</h5>
+                                    <p class="card-text">Customize useful links with icons for your readers.</p>
+                                    <a href="javascript:void(0)" onclick="toggleSection('quick-links-section')" class="btn btn-primary">Manage Links</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Change Logo Form -->
                 <div id="logo-section" class="content-section">
@@ -171,13 +245,270 @@
                         <button type="submit" class="btn btn-primary">Update Home Titles</button>
                     </form>
                 </div>
+                
+                <!-- AI Impact Highlights Section -->
+                <div id="highlights-section" class="content-section">
+                    <h2>Manage AI Impact Highlights</h2>
+                    <p>Add metrics and statistics to appear in the AI Impact Highlights section of your magazine.</p>
+                    
+                    <!-- Add New Highlight Form -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Add New Highlight</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="/manage-highlights" method="POST">
+                                <input type="hidden" name="action" value="add">
+                                <div class="form-group">
+                                    <label for="metric_name">Metric Name:</label>
+                                    <input type="text" class="form-control" id="metric_name" name="metric_name" required placeholder="e.g., Monthly AI Startups">
+                                </div>
+                                <div class="form-group">
+                                    <label for="metric_value">Metric Value:</label>
+                                    <input type="text" class="form-control" id="metric_value" name="metric_value" required placeholder="e.g., +27%">
+                                </div>
+                                <div class="form-group">
+                                    <label for="badge_color">Badge Color:</label>
+                                    <select class="form-control" id="badge_color" name="badge_color" required>
+                                        <option value="success">Green (Success)</option>
+                                        <option value="primary">Blue (Primary)</option>
+                                        <option value="info">Light Blue (Info)</option>
+                                        <option value="warning">Yellow (Warning)</option>
+                                        <option value="danger">Red (Danger)</option>
+                                        <option value="secondary">Gray (Secondary)</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success">Add Highlight</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Highlight Preview -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Current Highlights Preview</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                {% if highlights %}
+                                    {% for highlight in highlights %}
+                                    <div class="col-md-6 mb-2">
+                                        <div class="card">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-2 text-muted">{{ highlight.metric_name }}</h6>
+                                                <span class="badge badge-{{ highlight.badge_color }} p-2" style="font-size: 1.1em;">{{ highlight.metric_value }}</span>
+                                                <div class="mt-2">
+                                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editHighlight{{ highlight.id }}">Edit</button>
+                                                    <form method="POST" action="/manage-highlights" class="d-inline">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="highlight_id" value="{{ highlight.id }}">
+                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Edit Modal for each highlight -->
+                                    <div class="modal fade" id="editHighlight{{ highlight.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Highlight</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
+                                                </div>
+                                                <form action="/manage-highlights" method="POST">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="action" value="update">
+                                                        <input type="hidden" name="highlight_id" value="{{ highlight.id }}">
+                                                        <div class="form-group">
+                                                            <label>Metric Name:</label>
+                                                            <input type="text" class="form-control" name="metric_name" value="{{ highlight.metric_name }}" required>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Metric Value:</label>
+                                                            <input type="text" class="form-control" name="metric_value" value="{{ highlight.metric_value }}" required>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Badge Color:</label>
+                                                            <select class="form-control" name="badge_color" required>
+                                                                <option value="success" {% if highlight.badge_color == 'success' %}selected{% endif %}>Green (Success)</option>
+                                                                <option value="primary" {% if highlight.badge_color == 'primary' %}selected{% endif %}>Blue (Primary)</option>
+                                                                <option value="info" {% if highlight.badge_color == 'info' %}selected{% endif %}>Light Blue (Info)</option>
+                                                                <option value="warning" {% if highlight.badge_color == 'warning' %}selected{% endif %}>Yellow (Warning)</option>
+                                                                <option value="danger" {% if highlight.badge_color == 'danger' %}selected{% endif %}>Red (Danger)</option>
+                                                                <option value="secondary" {% if highlight.badge_color == 'secondary' %}selected{% endif %}>Gray (Secondary)</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    <div class="col-12 text-center">
+                                        <p>No highlights added yet. Add your first highlight above.</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Quick Links Section -->
+                <div id="quick-links-section" class="content-section">
+                    <h2>Manage Quick Links</h2>
+                    <p>Add useful links with icons to appear in the Quick Links section of your magazine.</p>
+                    
+                    <!-- Add New Quick Link Form -->
+                    <div class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Add New Quick Link</h5>
+                        </div>
+                        <div class="card-body">
+                            <form action="/manage-quick-links" method="POST">
+                                <input type="hidden" name="action" value="add">
+                                <div class="form-group">
+                                    <label for="link_title">Link Title:</label>
+                                    <input type="text" class="form-control" id="link_title" name="link_title" required placeholder="e.g., AI Courses">
+                                </div>
+                                <div class="form-group">
+                                    <label for="link_url">Link URL:</label>
+                                    <input type="url" class="form-control" id="link_url" name="link_url" required placeholder="e.g., https://example.com/courses">
+                                </div>
+                                <div class="form-group">
+                                    <label for="link_icon">Icon:</label>
+                                    <div class="input-group">
+                                        <select class="form-control" id="link_icon" name="link_icon" required>
+                                            <option value="fas fa-graduation-cap">Graduation Cap</option>
+                                            <option value="fas fa-book">Book</option>
+                                            <option value="fas fa-calendar">Calendar</option>
+                                            <option value="fas fa-briefcase">Briefcase</option>
+                                            <option value="fas fa-robot">Robot</option>
+                                            <option value="fas fa-chart-bar">Chart</option>
+                                            <option value="fas fa-cogs">Gears</option>
+                                            <option value="fas fa-brain">Brain</option>
+                                            <option value="fas fa-desktop">Computer</option>
+                                            <option value="fas fa-code">Code</option>
+                                        </select>
+                                        <div class="input-group-append">
+                                            <span class="input-group-text preview-icon"><i class="fas fa-graduation-cap"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="display_order">Display Order:</label>
+                                    <input type="number" class="form-control" id="display_order" name="display_order" required value="1" min="1">
+                                </div>
+                                <button type="submit" class="btn btn-success">Add Quick Link</button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Links List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Current Quick Links</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if quick_links %}
+                                <div class="list-group">
+                                    {% for link in quick_links %}
+                                        <div class="list-group-item list-group-item-action">
+                                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                                <div>
+                                                    <h6><i class="{{ link.link_icon }} mr-2"></i> {{ link.link_title }}</h6>
+                                                    <small class="text-muted">{{ link.link_url }}</small>
+                                                </div>
+                                                <div>
+                                                    <span class="badge badge-secondary mr-2">Order: {{ link.display_order }}</span>
+                                                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editLink{{ link.id }}">Edit</button>
+                                                    <form method="POST" action="/manage-quick-links" class="d-inline">
+                                                        <input type="hidden" name="action" value="delete">
+                                                        <input type="hidden" name="link_id" value="{{ link.id }}">
+                                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <!-- Edit Modal for each link -->
+                                        <div class="modal fade" id="editLink{{ link.id }}" tabindex="-1" role="dialog" aria-hidden="true">
+                                            <div class="modal-dialog" role="document">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">Edit Quick Link</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <form action="/manage-quick-links" method="POST">
+                                                        <div class="modal-body">
+                                                            <input type="hidden" name="action" value="update">
+                                                            <input type="hidden" name="link_id" value="{{ link.id }}">
+                                                            <div class="form-group">
+                                                                <label>Link Title:</label>
+                                                                <input type="text" class="form-control" name="link_title" value="{{ link.link_title }}" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Link URL:</label>
+                                                                <input type="url" class="form-control" name="link_url" value="{{ link.link_url }}" required>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Icon:</label>
+                                                                <div class="input-group">
+                                                                    <select class="form-control edit-icon-select" data-target="#editIconPreview{{ link.id }}" name="link_icon" required>
+                                                                        <option value="fas fa-graduation-cap" {% if link.link_icon == 'fas fa-graduation-cap' %}selected{% endif %}>Graduation Cap</option>
+                                                                        <option value="fas fa-book" {% if link.link_icon == 'fas fa-book' %}selected{% endif %}>Book</option>
+                                                                        <option value="fas fa-calendar" {% if link.link_icon == 'fas fa-calendar' %}selected{% endif %}>Calendar</option>
+                                                                        <option value="fas fa-briefcase" {% if link.link_icon == 'fas fa-briefcase' %}selected{% endif %}>Briefcase</option>
+                                                                        <option value="fas fa-robot" {% if link.link_icon == 'fas fa-robot' %}selected{% endif %}>Robot</option>
+                                                                        <option value="fas fa-chart-bar" {% if link.link_icon == 'fas fa-chart-bar' %}selected{% endif %}>Chart</option>
+                                                                        <option value="fas fa-cogs" {% if link.link_icon == 'fas fa-cogs' %}selected{% endif %}>Gears</option>
+                                                                        <option value="fas fa-brain" {% if link.link_icon == 'fas fa-brain' %}selected{% endif %}>Brain</option>
+                                                                        <option value="fas fa-desktop" {% if link.link_icon == 'fas fa-desktop' %}selected{% endif %}>Computer</option>
+                                                                        <option value="fas fa-code" {% if link.link_icon == 'fas fa-code' %}selected{% endif %}>Code</option>
+                                                                    </select>
+                                                                    <div class="input-group-append">
+                                                                        <span class="input-group-text" id="editIconPreview{{ link.id }}"><i class="{{ link.link_icon }}"></i></span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div class="form-group">
+                                                                <label>Display Order:</label>
+                                                                <input type="number" class="form-control" name="display_order" value="{{ link.display_order }}" required min="1">
+                                                            </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-center">No quick links added yet. Add your first link above.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <!-- Bootstrap JS and dependencies -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // JavaScript to toggle between sections
@@ -190,6 +521,12 @@
         document.getElementById('home-title-link').addEventListener('click', function() {
             toggleSection('home-title-section');
         });
+        document.getElementById('highlights-link').addEventListener('click', function() {
+            toggleSection('highlights-section');
+        });
+        document.getElementById('quick-links-link').addEventListener('click', function() {
+            toggleSection('quick-links-section');
+        });
 
         function toggleSection(sectionId) {
             const sections = document.querySelectorAll('.content-section');
@@ -199,8 +536,31 @@
             document.getElementById(sectionId).classList.add('active'); // Show the clicked section
         }
         
-        // Show the first section by default
-        toggleSection('logo-section');
+        // Show the welcome section by default
+        toggleSection('welcome-section');
+        
+        // Icon preview functionality
+        document.getElementById('link_icon').addEventListener('change', function() {
+            const iconClass = this.value;
+            const previewIcon = document.querySelector('.preview-icon i');
+            
+            // Remove all existing classes and add the selected one
+            previewIcon.className = '';
+            previewIcon.className = iconClass;
+        });
+        
+        // Edit icon preview functionality
+        document.querySelectorAll('.edit-icon-select').forEach(function(select) {
+            select.addEventListener('change', function() {
+                const iconClass = this.value;
+                const targetId = this.getAttribute('data-target');
+                const previewIcon = document.querySelector(targetId + ' i');
+                
+                // Remove all existing classes and add the selected one
+                previewIcon.className = '';
+                previewIcon.className = iconClass;
+            });
+        });
     </script>
 </body>
 </html>

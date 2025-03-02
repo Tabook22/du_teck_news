@@ -8,7 +8,7 @@ from flask_mail import Mail, Message
 from dotenv import load_dotenv
 import json
 import os
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 # Load environment variables from .env file
 load_dotenv()
@@ -72,22 +72,6 @@ def create_table():
                             news_summary TEXT,
                             news_url TEXT NOT NULL,
                             news_location TEXT NOT NULL)''')
-                            
-            # New table for AI Highlights (metrics)
-            conn.execute('''CREATE TABLE IF NOT EXISTS tbl_ai_highlights (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            metric_name TEXT NOT NULL,
-                            metric_value TEXT NOT NULL,
-                            badge_color TEXT NOT NULL,
-                            update_date TEXT NOT NULL)''')
-            
-            # New table for Quick Links
-            conn.execute('''CREATE TABLE IF NOT EXISTS tbl_quick_links (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            link_title TEXT NOT NULL,
-                            link_url TEXT NOT NULL,
-                            link_icon TEXT NOT NULL,
-                            display_order INTEGER)''')
 
             conn.commit()
         else:
@@ -265,20 +249,6 @@ def control():
     except FileNotFoundError:
         pass
 
-    # Fetch AI Highlights and Quick Links for the Control Panel
-    conn = get_db_connection()
-    highlights = []
-    quick_links = []
-    
-    if conn:
-        try:
-            highlights = conn.execute("SELECT * FROM tbl_ai_highlights ORDER BY id").fetchall()
-            quick_links = conn.execute("SELECT * FROM tbl_quick_links ORDER BY display_order").fetchall()
-        except sqlite3.Error as e:
-            print(f"Error fetching highlights and quick links: {e}")
-        finally:
-            conn.close()
-
     # Handle form submissions
     message = None
     if request.method == 'POST':
@@ -314,128 +284,12 @@ def control():
             }, config_file)
 
     # Render the control panel page
-    return render_template('control.html', 
-                          message=message,
-                          department_name=department_name,
-                          magazine_title=magazine_title,
-                          news_subtitle=news_subtitle,
-                          home_title=home_title,
-                          home_subtitle=home_subtitle,
-                          highlights=highlights,
-                          quick_links=quick_links)
-
-# Route for managing AI Highlights
-@app.route('/manage-highlights', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def manage_highlights():
-    conn = get_db_connection()
-    message = None
-    
-    if request.method == 'POST':
-        action = request.form.get('action')
-        
-        if action == 'add':
-            # Add new highlight
-            metric_name = request.form['metric_name']
-            metric_value = request.form['metric_value']
-            badge_color = request.form['badge_color']
-            update_date = datetime.now().strftime("%Y-%m-%d")
-            
-            conn.execute('''INSERT INTO tbl_ai_highlights 
-                            (metric_name, metric_value, badge_color, update_date) 
-                            VALUES (?, ?, ?, ?)''', 
-                         (metric_name, metric_value, badge_color, update_date))
-            conn.commit()
-            message = "Highlight added successfully"
-            
-        elif action == 'delete':
-            # Delete highlight
-            highlight_id = request.form['highlight_id']
-            conn.execute("DELETE FROM tbl_ai_highlights WHERE id = ?", (highlight_id,))
-            conn.commit()
-            message = "Highlight deleted successfully"
-            
-        elif action == 'update':
-            # Update highlight
-            highlight_id = request.form['highlight_id']
-            metric_name = request.form['metric_name']
-            metric_value = request.form['metric_value']
-            badge_color = request.form['badge_color']
-            
-            conn.execute('''UPDATE tbl_ai_highlights 
-                            SET metric_name = ?, metric_value = ?, badge_color = ? 
-                            WHERE id = ?''', 
-                         (metric_name, metric_value, badge_color, highlight_id))
-            conn.commit()
-            message = "Highlight updated successfully"
-    
-    # Fetch all highlights
-    highlights = conn.execute("SELECT * FROM tbl_ai_highlights ORDER BY id").fetchall()
-    conn.close()
-    
-    # If this is an AJAX request, return JSON, otherwise render template
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({"message": message, "redirect": url_for('control')})
-    else:
-        return redirect(url_for('control', message=message))
-
-# Route for managing Quick Links
-@app.route('/manage-quick-links', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def manage_quick_links():
-    conn = get_db_connection()
-    message = None
-    
-    if request.method == 'POST':
-        action = request.form.get('action')
-        
-        if action == 'add':
-            # Add new quick link
-            link_title = request.form['link_title']
-            link_url = request.form['link_url']
-            link_icon = request.form['link_icon']
-            display_order = request.form['display_order']
-            
-            conn.execute('''INSERT INTO tbl_quick_links 
-                            (link_title, link_url, link_icon, display_order) 
-                            VALUES (?, ?, ?, ?)''', 
-                         (link_title, link_url, link_icon, display_order))
-            conn.commit()
-            message = "Quick link added successfully"
-            
-        elif action == 'delete':
-            # Delete quick link
-            link_id = request.form['link_id']
-            conn.execute("DELETE FROM tbl_quick_links WHERE id = ?", (link_id,))
-            conn.commit()
-            message = "Quick link deleted successfully"
-            
-        elif action == 'update':
-            # Update quick link
-            link_id = request.form['link_id']
-            link_title = request.form['link_title']
-            link_url = request.form['link_url']
-            link_icon = request.form['link_icon']
-            display_order = request.form['display_order']
-            
-            conn.execute('''UPDATE tbl_quick_links 
-                            SET link_title = ?, link_url = ?, link_icon = ?, display_order = ? 
-                            WHERE id = ?''', 
-                         (link_title, link_url, link_icon, display_order, link_id))
-            conn.commit()
-            message = "Quick link updated successfully"
-    
-    # Fetch all quick links
-    quick_links = conn.execute("SELECT * FROM tbl_quick_links ORDER BY display_order").fetchall()
-    conn.close()
-    
-    # If this is an AJAX request, return JSON, otherwise render template
-    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        return jsonify({"message": message, "redirect": url_for('control')})
-    else:
-        return redirect(url_for('control', message=message))
+    return render_template('control.html', message=message,
+                           department_name=department_name,
+                           magazine_title=magazine_title,
+                           news_subtitle=news_subtitle,
+                           home_title=home_title,
+                           home_subtitle=home_subtitle)
 
 # Route for registering a new user
 @app.route('/register', methods=['GET', 'POST'])
@@ -589,6 +443,7 @@ def create_ai_magazine():
     return jsonify({"message": message})
 
 # Route for displaying the saved news list
+# Route for displaying the saved news list
 @login_required
 @admin_required
 @app.route('/saved-news')
@@ -631,6 +486,7 @@ def saved_news():
             sorted_dates = sorted(news_dict.keys(), reverse=True)
             
             # Create a new ordered dictionary with the sorted dates
+            from collections import OrderedDict
             sorted_news_dict = OrderedDict()
             for date in sorted_dates:
                 sorted_news_dict[date] = news_dict[date]
@@ -663,20 +519,12 @@ def latest_ai_news():
 def ai_magazine():
     conn = get_db_connection()
     top_news, second_news, sidebar_news, magazine_date = None, [], [], 'N/A'
-    highlights = []
-    quick_links = []
 
     try:
         # Fetch the news categorized by location
         top_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Top News'").fetchone()
         second_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Second News'").fetchall()
         sidebar_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Sidebar List'").fetchall()
-
-        # Fetch AI Highlights
-        highlights = conn.execute("SELECT * FROM tbl_ai_highlights").fetchall()
-        
-        # Fetch Quick Links
-        quick_links = conn.execute("SELECT * FROM tbl_quick_links ORDER BY display_order").fetchall()
 
         # Fetch the date from the first news entry in tblmgz (if available)
         first_news = conn.execute("SELECT add_date FROM tblmgz ORDER BY add_date LIMIT 1").fetchone()
@@ -686,7 +534,7 @@ def ai_magazine():
             # Format the date to the desired format (e.g., 'Wed October 16, 2024')
             magazine_date = date_obj.strftime("%a %B %d, %Y")
         else:
-            magazine_date = datetime.now().strftime("%a %B %d, %Y")
+            magazine_date = 'N/A'
 
         # Load titles from config.json
         with open('config.json', 'r') as config_file:
@@ -699,7 +547,6 @@ def ai_magazine():
         print(f"Error fetching AI Magazine news: {e}")
         top_news, second_news, sidebar_news, magazine_date = None, [], [], 'N/A'
         department_name, magazine_title, news_subtitle = 'N/A', 'N/A', 'N/A'
-        highlights, quick_links = [], []
 
     except FileNotFoundError:
         print("Error: config.json not found.")
@@ -716,9 +563,7 @@ def ai_magazine():
                            magazine_date=magazine_date,
                            department_name=department_name,
                            magazine_title=magazine_title,
-                           news_subtitle=news_subtitle,
-                           highlights=highlights,
-                           quick_links=quick_links)
+                           news_subtitle=news_subtitle)
 
 @app.route('/remove-news', methods=['POST'])
 def remove_single_news():
@@ -774,58 +619,8 @@ def delete_selected_news():
     # Return a JSON response to the client
     return jsonify({"message": message, "total_saved_news": total_saved_news})
 
-def initialize_default_data():
-    """Initialize default data for AI Highlights and Quick Links if they don't exist."""
-    conn = get_db_connection()
-    if conn:
-        try:
-            # Check if AI Highlights table is empty
-            highlight_count = conn.execute("SELECT COUNT(*) FROM tbl_ai_highlights").fetchone()[0]
-            
-            if highlight_count == 0:
-                # Add default AI Highlights
-                today = datetime.now().strftime("%Y-%m-%d")
-                default_highlights = [
-                    ("Monthly AI Startups", "+27%", "success", today),
-                    ("Funding in AI Space", "$4.2B", "info", today),
-                    ("New Research Papers", "315", "warning", today),
-                    ("Developer Adoption", "Growing", "danger", today)
-                ]
-                
-                for highlight in default_highlights:
-                    conn.execute(
-                        "INSERT INTO tbl_ai_highlights (metric_name, metric_value, badge_color, update_date) VALUES (?, ?, ?, ?)",
-                        highlight
-                    )
-                conn.commit()
-                print("Default AI Highlights added.")
-            
-            # Check if Quick Links table is empty
-            quicklink_count = conn.execute("SELECT COUNT(*) FROM tbl_quick_links").fetchone()[0]
-            
-            if quicklink_count == 0:
-                # Add default Quick Links
-                default_links = [
-                    ("AI Courses", "https://example.com/courses", "fas fa-graduation-cap", 1),
-                    ("Research Papers", "https://example.com/papers", "fas fa-book", 2),
-                    ("Upcoming Events", "https://example.com/events", "fas fa-calendar", 3),
-                    ("Job Opportunities", "https://example.com/jobs", "fas fa-briefcase", 4)
-                ]
-                
-                for link in default_links:
-                    conn.execute(
-                        "INSERT INTO tbl_quick_links (link_title, link_url, link_icon, display_order) VALUES (?, ?, ?, ?)",
-                        link
-                    )
-                conn.commit()
-                print("Default Quick Links added.")
-        
-        except sqlite3.Error as e:
-            print(f"Error initializing default data: {e}")
-        finally:
-            conn.close()
-
 if __name__ == '__main__':
     create_table()  # Ensure the table is created before running the app
-    initialize_default_data()  # Initialize default data for new sections
+    #app.run(host="0.0.0.0", port=5000, debug=True)
     app.run(debug=True)
+

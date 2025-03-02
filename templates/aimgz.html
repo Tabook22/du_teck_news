@@ -5,250 +5,411 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ magazine_title }}</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <style>
-        /* ... (keeping all previous styles up to media queries) ... */
+        :root {
+            --primary-color: #260fd0;
+            --secondary-color: #f89d21;
+            --accent-color: #e03131;
+            --light-bg: #f8f9fa;
+            --dark-text: #212529;
+            --light-text: #ffffff;
+            --border-radius: 12px;
+        }
+        
         body {
-            background-color: #260fd0;
-            color: black !important;
-            padding:1rem;
+            background-color: var(--primary-color);
+            color: var(--dark-text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 1rem;
+            line-height: 1.6;
         }
 
         a {
-            color: black;
+            color: var(--primary-color);
             text-decoration: none;
+            transition: color 0.3s;
         }
 
         a:hover {
-            color: #f89d21;
+            color: var(--secondary-color);
             text-decoration: none;
         }
 
         .container {
-            margin-top: 20px;
-            margin-bottom: 20px;
+            margin: 20px auto;
             background-color: white;
-            padding: 20px;
-            border-radius: 20px;
-            width: 100%;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             max-width: 1200px;
         }
 
         .title-section {
             text-align: center;
-            margin-bottom: 30px;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            border-bottom: 1px solid;
+            margin-bottom: 40px;
             position: relative;
-            padding-bottom: 20px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e9ecef;
         }
 
-        .title-section h1 {
-            font-size: clamp(2rem, 5vw, 4rem);
-            font-weight: bold;
+        .magazine-logo {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--accent-color);
             font-family: 'Georgia', serif;
+            margin-bottom: 0;
+            line-height: 1.2;
+            letter-spacing: -1px;
+        }
+
+        .department-name {
+            font-size: 1.3rem;
+            color: #666;
             margin-bottom: 10px;
+            letter-spacing: 1px;
         }
 
-        .title-section h2 {
-            font-size: clamp(1.2rem, 3vw, 1.8rem);
-            font-family: 'Courier New', Courier, monospace;
-        }
-
-        .title-section h3 {
-            font-size: clamp(1rem, 2.5vw, 1.5rem);
+        .magazine-subtitle {
+            font-size: 1.6rem;
+            font-weight: 500;
+            margin-top: 0;
+            color: #444;
         }
 
         .date-section {
-            text-align: right;
-            font-size: 0.8rem;
-            font-family: 'Arial', sans-serif;
+            font-size: 0.95rem;
             font-style: italic;
             position: absolute;
             right: 0;
-            bottom: 0;
-            margin-right: 1.2rem;
+            bottom: 10px;
+            background-color: var(--primary-color);
+            color: var(--light-text);
+            padding: 4px 15px;
+            border-radius: 20px;
         }
 
-        .sidebar {
-
-            margin-bottom: 20px;
+        .section-heading {
+            position: relative;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--secondary-color);
         }
 
-        .sidebar h5 {
-            font-size: 1.3rem;
-            margin-bottom: 20px;
+        .section-heading::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 80px;
+            height: 2px;
+            background-color: var(--primary-color);
         }
 
-        .sidebar ul {
-            list-style: decimal;
-            padding-left: 20px;
+        .news-sidebar {
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 4px solid var(--primary-color);
+            height: fit-content;
+        }
+
+        .news-list {
+            list-style: none;
+            padding-left: 0;
             margin-bottom: 0;
         }
 
-        .sidebar ul li {
-            margin-bottom: 15px;
-            font-size: 1rem;
-            border-bottom: 1px solid darkgray;
-            padding-bottom: 10px;
+        .news-list-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #dee2e6;
+            position: relative;
+            padding-left: 25px;
         }
 
-        .sidebar ul li:last-child {
+        .news-list-item:last-child {
             margin-bottom: 0;
             border-bottom: none;
         }
-        .adv1{
-            margin-top:20rem;
+        
+        .news-list-item::before {
+            content: '\f105';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            position: absolute;
+            left: 0;
+            color: var(--secondary-color);
+            font-size: 1.2rem;
         }
-        .news-item {
-            margin-bottom: 30px;
+
+        .news-list-link {
+            font-weight: 600;
+            display: block;
+            line-height: 1.4;
+        }
+
+        .news-list-time {
+            font-size: 0.85rem;
+            color: #6c757d;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .adv-section {
+            margin-top: 40px;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .main-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .news-contents-wrapper {
+            padding: 25px;
+        }
+
+        .featured-news {
+            margin-bottom: 40px;
+        }
+
+        .news-image-container {
+            position: relative;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            border: 1px solid #eaeaea;
         }
 
         .news-image {
             width: 100%;
             height: auto;
-            border-radius: 8px;
-            object-fit: cover;
+            transition: transform 0.5s ease;
+            display: block;
+        }
+
+        .news-image-container:hover .news-image {
+            transform: scale(1.05);
+        }
+
+        .top-news-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: var(--accent-color);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .news-meta {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 10px;
         }
 
         .news-title {
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
-            font-weight: bold;
-            margin-top: 10px;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+
+        .news-title a {
+            color: var(--dark-text);
+        }
+
+        .news-title a:hover {
+            color: var(--primary-color);
         }
 
         .news-summary {
-            font-size: clamp(0.9rem, 2vw, 1.1rem);
-            margin: 10px 0;
-            line-height: 1.6;
-        }
-        
-        .news-contents-wrapper{
-            padding:1rem;
-        }
-        .second-news .news-item {
-            display: flex;
-            flex-direction: row;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .img_frame {
-            flex: 0 0 150px;
-            padding:3px;
-            border:1px solid #333;
-            border-radius:10px;
-        }
-        .news-img-frame{
-            padding:3px;
-            border:1px solid #333;
-            border-radius:10px;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.7;
         }
 
         .btn-read-more {
-            display: inline-block;
-            background-color: #f89d21;
+            display: inline-flex;
+            align-items: center;
+            background-color: var(--secondary-color);
             color: white;
             border: none;
-            padding: 8px 15px;
+            padding: 10px 20px;
             border-radius: 5px;
-            text-decoration: none;
-            transition: background-color 0.3s ease;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn-read-more:hover {
-            background-color: #e58b1a;
+            background-color: var(--primary-color);
             color: white;
+            transform: translateY(-2px);
         }
 
-        .logo {
-            max-width: 180px;
-            height: auto;
-            margin-bottom: 0.5rem;
+        .btn-read-more i {
+            margin-left: 8px;
+        }
+
+        .secondary-news {
+            margin-top: 40px;
+        }
+
+        .secondary-news-item {
+            display: flex;
+            gap: 25px;
+            margin-bottom: 30px;
+            background-color: var(--light-bg);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .secondary-news-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .secondary-image-container {
+            flex: 0 0 200px;
+            overflow: hidden;
+        }
+
+        .secondary-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .secondary-content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .secondary-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.3;
+        }
+
+        .secondary-summary {
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #808080;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+        }
+
+        .footer-links {
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            margin: 0 10px;
+            color: #4a4a4a;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .copyright {
+            margin-bottom: 0;
         }
 
         /* Mobile Responsive Design */
         @media (max-width: 768px) {
             .container {
-                padding: 15px;
-                margin-top: 10px;
+                padding: 20px;
             }
 
-            .title-section .row {
-                flex-direction: column;
-                align-items: center;
+            .title-section {
+                padding-bottom: 50px;
             }
 
-            .title-section .col-md-3,
-            .title-section .col-md-9 {
-                width: 100%;
-                text-align: center;
+            .magazine-logo {
+                font-size: 2.5rem;
             }
 
             .date-section {
-                position: relative;
-                text-align: center;
-                margin: 10px 0;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+                bottom: 10px;
+                width: fit-content;
             }
 
-            .second-news .news-item {
+            .secondary-news-item {
                 flex-direction: column;
             }
 
-            .img_frame {
+            .secondary-image-container {
                 flex: none;
-                width: 100%;
-                margin-bottom: 15px;
+                height: 200px;
             }
 
-            /* New styles for mobile sidebar */
-            .row {
+            /* Reorder columns for mobile */
+            .row-mobile-reorder {
                 display: flex;
                 flex-direction: column;
             }
 
-            .sidebar {
-                order: 2; /* This moves the sidebar to the bottom */
-                margin-top: 30px;
-
+            .col-mobile-1 {
+                order: 1;
             }
 
-            .col-md-9 {
-                order: 1; /* This moves the main content to the top */
+            .col-mobile-2 {
+                order: 2;
+                margin-top: 30px;
             }
         }
 
         @media (max-width: 576px) {
             .container {
-                padding: 10px;
+                padding: 15px;
             }
 
             .logo {
-                max-width: 140px;
+                max-width: 120px;
             }
 
-            .news-image {
-                height: 200px;
+            .magazine-logo {
+                font-size: 2rem;
+            }
+
+            .section-heading {
+                font-size: 1.4rem;
+            }
+
+            .news-title {
+                font-size: 1.5rem;
             }
         }
 
         /* iPad Specific */
         @media only screen and (min-width: 768px) and (max-width: 1024px) {
-            .second-news .news-item {
-                flex-direction: row;
-            }
-
-            .img_frame {
-                flex: 0 0 120px;
-            }
-
-            .sidebar {
-                margin-bottom: 30px;
-            }
-
-            /* Ensure sidebar stays on the left for iPad */
-            .row {
-                display: flex;
-                flex-direction: row;
+            .secondary-image-container {
+                flex: 0 0 150px;
             }
         }
     </style>
@@ -257,76 +418,136 @@
     <div class="container">
         <!-- Title Section -->
         <div class="title-section">
-            <div class="row">
-                <div class="col-md-3">
-                    <img src="{{ url_for('static', filename='images/new_logo.png') }}" alt="Company Logo" class="logo">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center text-md-left">
+                    <img src="{{ url_for('static', filename='images/new_logo.png') }}" alt="Company Logo" class="logo img-fluid" style="max-width: 180px;">
                 </div>
-                <div class="col-md-9">
-                    <h2>{{ department_name }}</h2>
-                    <h1>{{ magazine_title }}</h1>
-                    <h3>{{ news_subtitle }}</h3>
-                    <div class="date-section">{{ magazine_date }}</div>
+                <div class="col-md-9 text-center text-md-left">
+                    <h3 class="department-name">{{ department_name }}</h3>
+                    <h1 class="magazine-logo">{{ magazine_title }}</h1>
+                    <h2 class="magazine-subtitle">{{ news_subtitle }}</h2>
+                    <div class="date-section">
+                        <i class="far fa-calendar-alt mr-2"></i>{{ magazine_date }}
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
-            <!-- Sidebar for the news list -->
-            <div class="col-md-3 sidebar">
-                <h5>News List</h5>
-                <ul>
-                    {% for news in sidebar_news %}
-                    <li>
-                        <a href="{{ news.news_url }}" target="_blank">{{ news.news_title }}</a>
-                    </li>
-                    {% endfor %}
-                </ul>
-                <div class="adv1">
-                    <img src="{{ url_for('static', filename='images/adv1.jpg') }}" alt="Company Logo" class="img-fluid">
+        <div class="row row-mobile-reorder">
+            <!-- Main content -->
+            <div class="col-lg-8 col-mobile-1">
+                <div class="main-content">
+                    <div class="news-contents-wrapper">
+                        <!-- Featured News Section (Previously Top News) -->
+                        {% if top_news %}
+                        <div class="featured-news">
+                            <div class="news-image-container">
+                                <div class="top-news-badge">Featured</div>
+                                <img src="{{ top_news.news_image }}" alt="{{ top_news.news_title }}" class="news-image">
+                            </div>
+                            <div class="news-meta">
+                                <i class="far fa-clock mr-1"></i> Featured Story
+                            </div>
+                            <h3 class="news-title">
+                                <a href="{{ top_news.news_url }}" target="_blank">{{ top_news.news_title }}</a>
+                            </h3>
+                            <div class="news-summary">{{ top_news.news_summary }}</div>
+                            <a href="{{ top_news.news_url }}" target="_blank" class="btn-read-more">
+                                Read Full Story <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </div>
+                        <hr>
+                        {% endif %}
+
+                        <!-- Secondary News Section -->
+                        <div class="secondary-news">
+                            <h4 class="section-heading">Latest AI Updates</h4>
+                            
+                            {% for news in second_news %}
+                            <div class="secondary-news-item">
+                                <div class="secondary-image-container">
+                                    <img src="{{ news.news_image }}" alt="{{ news.news_title }}" class="news-image">    
+                                </div>
+                                <div class="secondary-content">
+                                    <h5 class="secondary-title">{{ news.news_title }}</h5>
+                                    <div class="secondary-summary">{{ news.news_summary }}</div>
+                                    <a href="{{ news.news_url }}" target="_blank" class="btn-read-more">
+                                        Read More <i class="fas fa-arrow-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Section -->
+                <div class="footer">
+                    <div class="footer-links">
+                        <a href="#"><i class="fas fa-home mr-1"></i>Home</a>
+                        <a href="#"><i class="fas fa-archive mr-1"></i>Archives</a>
+                        <a href="#"><i class="fas fa-envelope mr-1"></i>Subscribe</a>
+                        <a href="#"><i class="fas fa-info-circle mr-1"></i>About</a>
+                    </div>
+                    <p class="copyright">© {{ magazine_date[-4:] }} {{ magazine_title }}. All rights reserved.</p>
                 </div>
             </div>
 
-            <!-- Main content -->
-            <div class="col-md-9">
-                <div class="news-contents-wrapper">
-                <!-- Top News Section -->
-                
-                {% if top_news %}
-                <div class="top-news">
-                    <div class="news-item">
-                        <div class="news-img-frame">
-                        <img src="{{ top_news.news_image }}" alt="Top News Image" class="news-image">
-                        </div>
-                        <div class="news-title">{{ top_news.news_title }}</div>
-                        <div class="news-summary">{{ top_news.news_summary }}</div>
-                        <a href="{{ top_news.news_url }}" target="_blank" class="btn-read-more">Read More</a>
-                    </div>
+            <!-- Sidebar for news list and ads -->
+            <div class="col-lg-4 col-mobile-2">
+                <div class="news-sidebar">
+                    <h4 class="section-heading">Trending in AI</h4>
+                    <ul class="news-list">
+                        {% for news in sidebar_news %}
+                        <li class="news-list-item">
+                            <a href="{{ news.news_url }}" target="_blank" class="news-list-link">{{ news.news_title }}</a>
+                            <span class="news-list-time"><i class="far fa-clock mr-1"></i>Recently Added</span>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
-                <hr>
-                {% endif %}
 
-                <!-- Second News Section -->
-                <div class="second-news">
-                    {% for news in second_news %}
-                    <div class="news-item">
-                        <div class="img_frame">
-                            <img src="{{ news.news_image }}" alt="Second News Image" class="news-image">    
-                        </div>
-                        <div>
-                            <div class="news-title">{{ news.news_title }}</div>
-                            <div class="news-summary">{{ news.news_summary }}</div>
-                            <a href="{{ news.news_url }}" target="_blank" class="btn-read-more">Read More</a>
-                        </div>
+                <!-- AI Impact Highlights Card -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-robot mr-2"></i>AI Impact Highlights</h5>
                     </div>
-                    <hr>
-                    {% endfor %}
+                    <div class="card-body">
+                        {% for highlight in highlights %}
+                        <p>
+                            <strong>{{ highlight.metric_name }}:</strong> 
+                            <span class="badge badge-{{ highlight.badge_color }}">{{ highlight.metric_value }}</span>
+                        </p>
+                        {% endfor %}
+                    </div>
                 </div>
+
+                <!-- Advertisement Section -->
+                <div class="adv-section">
+                    <img src="{{ url_for('static', filename='images/adv1.jpg') }}" alt="Advertisement" class="img-fluid">
+                </div>
+                
+                <!-- Quick Link Card -->
+                <div class="card mt-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0"><i class="fas fa-link mr-2"></i>Quick Links</h5>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        {% for link in quick_links %}
+                        <li class="list-group-item">
+                            <a href="{{ link.link_url }}" target="_blank">
+                                <i class="{{ link.link_icon }} mr-2"></i>{{ link.link_title }}
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
