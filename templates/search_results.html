@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Results - {{ magazine_title }}</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #260fd0;
+            padding: 1rem;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+        .result-item {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .result-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        .comment-item {
+            border-left: 3px solid #007bff;
+            background-color: #f8f9fa;
+        }
+        .comment-section {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px dashed #dee2e6;
+        }
+        .modal-xl {
+            max-width: 90%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Back to Magazine button -->
+        <div class="mb-4">
+            <a href="{{ url_for('ai_magazine') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Magazine
+            </a>
+        </div>
+
+        <h2>Search Results for "{{ query }}"</h2>
+        
+        <!-- Search Form (for refining search) -->
+        <div class="search-container mb-4">
+            <form action="{{ url_for('search_magazine') }}" method="GET" class="form-inline">
+                <div class="input-group" style="width: 100%;">
+                    <input type="text" name="query" class="form-control" value="{{ query }}" required>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Search
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Count -->
+        <p>Found {{ results|length }} results.</p>
+
+        <!-- Results List -->
+        <div class="results-list">
+            {% if results %}
+                {% for result in results %}
+                <div class="result-item">
+                    <h4>
+                        <a href="#" onclick="openArticleModal('{{ result.news_title }}', '{{ result.news_image }}', '{{ result.news_summary }}', '{{ result.news_url }}'); return false;">
+                            {{ result.news_title }}
+                        </a>
+                    </h4>
+                    <p class="text-muted">
+                        <i class="far fa-calendar-alt mr-2"></i>{{ result.add_date }}
+                        <span class="ml-3 badge badge-primary">{{ result.news_location }}</span>
+                    </p>
+                    <p>{{ result.news_summary }}</p>
+                    <div class="btn-group">
+                        <a href="#" onclick="openArticleModal('{{ result.news_title }}', '{{ result.news_image }}', '{{ result.news_summary }}', '{{ result.news_url }}'); return false;" class="btn btn-sm btn-primary">
+                            <i class="far fa-comment-dots mr-1"></i> View & Comment
+                        </a>
+                        <a href="{{ result.news_url }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            <i class="fas fa-external-link-alt mr-1"></i> Read Original
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="alert alert-info">
+                    No results found for "{{ query }}". Try a different search term.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Article Modal with Comments (same as in aimgz.html) -->
+    <div class="modal fade" id="articleModal" tabindex="-1" role="dialog" aria-labelledby="articleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="articleModalLabel">Article Title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="article-content mb-4">
+                        <div class="article-image-container mb-3">
+                            <img id="modalArticleImage" src="" alt="Article Image" class="img-fluid">
+                        </div>
+                        <p id="modalArticleSummary" class="lead"></p>
+                        <a id="modalArticleLink" href="#" target="_blank" class="btn btn-primary">
+                            Read Full Article <i class="fas fa-external-link-alt ml-1"></i>
+                        </a>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="comments-section">
+                        <h5><i class="fas fa-comments mr-2"></i>Comments</h5>
+                        
+                        <!-- Comments List -->
+                        <div id="commentsList" class="mt-4">
+                            <!-- Comments will be loaded here dynamically -->
+                            <p class="text-muted">Loading comments...</p>
+                        </div>
+                        
+                        <!-- Comment Form -->
+                        <form id="commentForm" class="mt-4">
+                            <input type="hidden" id="commentNewsUrl" name="news_url" value="">
+                            <div class="form-group">
+                                <textarea class="form-control" id="commentText" name="comment_text" rows="3" placeholder="Add your comment..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane mr-1"></i> Post Comment
+                            </button>
+                            <div id="commentStatus" class="mt-2" style="display: none;"></div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Comment System JavaScript -->
+    <script>
+        // Current article URL
+        let currentArticleUrl = '';
+        
+        // Function to open article modal and load comments
+        function openArticleModal(title, image, summary, url) {
+            // Update modal content
+            document.getElementById('articleModalLabel').textContent = title;
+            document.getElementById('modalArticleImage').src = image;
+            document.getElementById('modalArticleSummary').textContent = summary;
+            document.getElementById('modalArticleLink').href = url;
+            
+            // Set the news URL for the comment form
+            document.getElementById('commentNewsUrl').value = url;
+            currentArticleUrl = url;
+            
+            // Load existing comments
+            loadComments(url);
+            
+            // Show the modal
+            $('#articleModal').modal('show');
+        }
+        
+        // Function to load comments
+        function loadComments(url) {
+            console.log("Loading comments for:", url);
+            
+            fetch(`/get-comments/${encodeURIComponent(url)}`)
+                .then(response => response.json())
+                .then(data => {
+                    const commentsContainer = document.getElementById('commentsList');
+                    
+                    if (!data.comments || data.comments.length === 0) {
+                        commentsContainer.innerHTML = '<p class="text-muted">No comments yet. Be the first to comment!</p>';
+                        return;
+                    }
+                    
+                    // Display comments
+                    let commentsHTML = '';
+                    data.comments.forEach(comment => {
+                        commentsHTML += `
+                            <div class="comment-item p-3 mb-3 border rounded">
+                                <div class="d-flex justify-content-between">
+                                    <strong>${comment.commenter_name}</strong>
+                                    <small class="text-muted">${comment.comment_date}</small>
+                                </div>
+                                <p class="mt-2 mb-0">${comment.comment_text}</p>
+                            </div>
+                        `;
+                    });
+                    
+                    commentsContainer.innerHTML = commentsHTML;
+                })
+                .catch(error => {
+                    console.error('Error loading comments:', error);
+                    document.getElementById('commentsList').innerHTML = 
+                        '<p class="text-danger">Error loading comments. Please try again later.</p>';
+                });
+        }
+        
+        // Handle comment form submission
+        document.getElementById('commentForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            
+            const commentText = document.getElementById('commentText').value.trim();
+            if (!commentText) {
+                return;
+            }
+            
+            // Show loading state
+            const submitButton = this.querySelector('button[type="submit"]');
+            const statusDiv = document.getElementById('commentStatus');
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Posting...';
+            statusDiv.style.display = 'none';
+            
+            // Create form data
+            const formData = new FormData();
+            formData.append('news_url', currentArticleUrl);
+            formData.append('comment_text', commentText);
+            
+            // Submit the comment
+            fetch('/add-simple-comment', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Clear the form
+                    document.getElementById('commentText').value = '';
+                    
+                    // Show success message
+                    statusDiv.className = 'alert alert-success';
+                    statusDiv.textContent = 'Comment posted successfully!';
+                    statusDiv.style.display = 'block';
+                    
+                    // Add the new comment to the list
+                    addNewCommentToList(data.comment);
+                    
+                    // Hide the success message after a delay
+                    setTimeout(() => {
+                        statusDiv.style.display = 'none';
+                    }, 3000);
+                } else {
+                    // Show error message
+                    statusDiv.className = 'alert alert-danger';
+                    statusDiv.textContent = data.message || 'Failed to post comment';
+                    statusDiv.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error posting comment:', error);
+                statusDiv.className = 'alert alert-danger';
+                statusDiv.textContent = 'An error occurred while posting your comment';
+                statusDiv.style.display = 'block';
+            })
+            .finally(() => {
+                // Reset button state
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Post Comment';
+            });
+        });
+        
+        // Function to add a new comment to the list without reloading
+        function addNewCommentToList(comment) {
+            const commentsList = document.getElementById('commentsList');
+            
+            // Create a new comment element
+            const commentElement = document.createElement('div');
+            commentElement.className = 'comment-item p-3 mb-3 border rounded';
+            commentElement.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <strong>${comment.commenter_name}</strong>
+                    <small class="text-muted">${comment.comment_date}</small>
+                </div>
+                <p class="mt-2 mb-0">${comment.comment_text}</p>
+            `;
+            
+            // Add the new comment at the top of the list
+            if (commentsList.firstChild) {
+                commentsList.insertBefore(commentElement, commentsList.firstChild);
+            } else {
+                commentsList.appendChild(commentElement);
+            }
+            
+            // If there was a "no comments" message, remove it
+            const noCommentsMsg = commentsList.querySelector('.text-muted');
+            if (noCommentsMsg && noCommentsMsg.textContent.includes('No comments yet')) {
+                noCommentsMsg.remove();
+            }
+        }
+    </script>
+</body>
+</html>

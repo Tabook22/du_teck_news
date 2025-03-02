@@ -9,12 +9,15 @@ from dotenv import load_dotenv
 import json
 import os
 from collections import defaultdict, OrderedDict
+from flask_wtf.csrf import CSRFProtect
 
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key'
+# Initialize CSRF protection
+csrf = CSRFProtect(app)
 
 # Flask-Mail configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -88,7 +91,14 @@ def create_table():
                             link_url TEXT NOT NULL,
                             link_icon TEXT NOT NULL,
                             display_order INTEGER)''')
-
+            
+            # Create the comments table
+            conn.execute('''CREATE TABLE IF NOT EXISTS tbl_comments (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            news_url TEXT NOT NULL,
+                            commenter_name TEXT NOT NULL,
+                            comment_text TEXT NOT NULL,
+                            comment_date TEXT NOT NULL)''')
             conn.commit()
         else:
             print("Failed to create database connection.")
@@ -505,6 +515,7 @@ def search_news_items():
 
 # Route to add/remove news to/from the list (AJAX)
 @app.route('/toggle-news-list', methods=['POST'])
+@csrf.exempt  # Exempt this route from CSRF protection since we're handling it manually
 def toggle_news_list():
     news_title = request.form['news_title']
     news_image = request.form['news_image']
@@ -546,6 +557,7 @@ def toggle_news_list():
 
 # Route to create the AI News Magazine
 @app.route('/create-ai-magazine', methods=['POST'])
+@csrf.exempt  #
 def create_ai_magazine():
 
     selected_news_ids = request.form.getlist('selectedNews[]')
@@ -721,6 +733,7 @@ def ai_magazine():
                            quick_links=quick_links)
 
 @app.route('/remove-news', methods=['POST'])
+@csrf.exempt 
 def remove_single_news():
     news_id = request.form['news_id']  # Ensure this is the correct news_id being passed
 
@@ -748,6 +761,7 @@ def remove_single_news():
     return jsonify({"message": message, "total_saved_news": total_saved_news})
 
 @app.route('/delete_selected_news', methods=['POST'])
+@csrf.exempt 
 def delete_selected_news():
     selected_news_ids = request.form.getlist('selectedNews[]')  # List of selected news IDs
     conn = get_db_connection()
@@ -824,6 +838,234 @@ def initialize_default_data():
             print(f"Error initializing default data: {e}")
         finally:
             conn.close()
+
+#Search route in the AI magazine
+@app.route('/search-magazine', methods=['GET', 'POST'])
+def search_magazine():
+    query = request.args.get('query', '')
+    
+    if not query:
+        return render_template('search_results.html', results=[], query='')
+    
+    conn = get_db_connection()
+    results = []
+    
+    if conn:
+        try:
+            # Search in tblmgz for matching articles
+            results = conn.execute("""
+                SELECT * FROM tblmgz 
+                WHERE news_title LIKE ? OR news_summary LIKE ?
+                ORDER BY add_date DESC
+            """, (f'%{query}%', f'%{query}%')).fetchall()
+            
+            # Convert SQLite Row objects to dictionaries
+            results = [dict(row) for row in results]
+            
+        except sqlite3.Error as e:
+            print(f"Error searching magazine: {e}")
+        finally:
+            conn.close()
+    
+    return render_template('search_results.html', results=results, query=query)
+
+#routes for managing comments
+@app.route('/add-comment', methods=['POST'])
+@login_required
+def add_comment():
+    try:
+        print("Request method:", request.method)
+        print("Content type:", request.content_type)
+        
+        # Handle both form data and JSON
+        if request.is_json:
+            print("Processing JSON data")
+            data = request.get_json()
+            news_url = data.get('news_url', '')
+            comment_text = data.get('comment_text', '')
+        else:
+            print("Processing form data")
+            news_url = request.form.get('news_url', '')
+            comment_text = request.form.get('comment_text', '')
+        
+        commenter_name = session.get('username', 'Anonymous')
+        comment_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        print(f"news_url: '{news_url}'")
+        print(f"comment_text: '{comment_text}'")
+        print(f"commenter_name: '{commenter_name}'")
+        
+        # Validate input
+        if not news_url or not comment_text:
+            print("Missing required fields")
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            print("Database connection failed")
+            return jsonify({"success": False, "message": "Database connection failed"}), 500
+        
+        # Insert comment
+        try:
+            conn.execute(
+                "INSERT INTO tbl_comments (news_url, commenter_name, comment_text, comment_date) VALUES (?, ?, ?, ?)",
+                (news_url, commenter_name, comment_text, comment_date)
+            )
+            conn.commit()
+            print("Comment saved successfully")
+            
+            # Return success response
+            return jsonify({
+                "success": True, 
+                "message": "Comment added successfully",
+                "comment": {
+                    "commenter_name": commenter_name,
+                    "comment_text": comment_text,
+                    "comment_date": comment_date
+                }
+            })
+            
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            return jsonify({"success": False, "message": f"Database error: {e}"}), 500
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return jsonify({"success": False, "message": "An unexpected error occurred"}), 500
+    
+
+@app.route('/get-comments/<path:news_url>')
+def get_comments(news_url):
+    print(f"Fetching comments for URL: {news_url}")
+    comments = []
+    
+    try:
+        conn = get_db_connection()
+        if conn:
+            try:
+                # Get all comments for this news URL
+                comments_data = conn.execute(
+                    "SELECT * FROM tbl_comments WHERE news_url = ? ORDER BY comment_date DESC", 
+                    (news_url,)
+                ).fetchall()
+                
+                # Convert to list of dictionaries
+                comments = [dict(row) for row in comments_data]
+                print(f"Found {len(comments)} comments")
+                
+            except sqlite3.Error as e:
+                print(f"Database error fetching comments: {e}")
+            finally:
+                conn.close()
+        
+        return jsonify({"success": True, "comments": comments})
+        
+    except Exception as e:
+        print(f"Error fetching comments: {e}")
+        return jsonify({"success": False, "message": str(e), "comments": []})
+
+@app.route('/add-simple-comment', methods=['POST'])
+@login_required
+@csrf.exempt  # We'll use AJAX so we'll exempt this from CSRF
+def add_simple_comment():
+    try:
+        news_url = request.form.get('news_url', '')
+        comment_text = request.form.get('comment_text', '')
+        commenter_name = session.get('username', 'Anonymous')
+        comment_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        print(f"Adding comment for URL: {news_url}, text: {comment_text}")
+        
+        if not news_url or not comment_text:
+            return jsonify({"success": False, "message": "Missing required fields"}), 400
+        
+        conn = get_db_connection()
+        if conn:
+            try:
+                conn.execute(
+                    "INSERT INTO tbl_comments (news_url, commenter_name, comment_text, comment_date) VALUES (?, ?, ?, ?)",
+                    (news_url, commenter_name, comment_text, comment_date)
+                )
+                conn.commit()
+                
+                # Return the new comment data so it can be displayed immediately
+                return jsonify({
+                    "success": True,
+                    "message": "Comment added successfully",
+                    "comment": {
+                        "commenter_name": commenter_name,
+                        "comment_text": comment_text,
+                        "comment_date": comment_date
+                    }
+                })
+                
+            except sqlite3.Error as e:
+                print(f"Database error: {e}")
+                return jsonify({"success": False, "message": f"Database error: {str(e)}"}), 500
+            finally:
+                conn.close()
+        else:
+            return jsonify({"success": False, "message": "Failed to connect to database"}), 500
+            
+    except Exception as e:
+        print(f"Error adding comment: {e}")
+        return jsonify({"success": False, "message": str(e)}), 500
+
+@app.route('/test-comment', methods=['GET', 'POST'])
+def test_comment():
+    message = None
+    if request.method == 'POST':
+        comment = request.form.get('comment', '')
+        print(f"Received test comment: {comment}")
+        message = f"Received: {comment}"
+    
+    # Simple test form
+    return '''
+    <html>
+    <body>
+        <h1>Comment Test Form</h1>
+        <p>{}</p>
+        <form method="POST">
+            <textarea name="comment"></textarea>
+            <button type="submit">Submit Test</button>
+        </form>
+    </body>
+    </html>
+    '''.format(message or '')
+
+@app.route('/debug-comment', methods=['GET', 'POST'])
+def debug_comment():
+    result = {
+        "method": request.method,
+        "form": dict(request.form),
+        "json": request.get_json(silent=True),
+        "headers": dict(request.headers),
+        "cookies": dict(request.cookies),
+        "args": dict(request.args)
+    }
+    
+    try:
+        # Try to save a test comment
+        if request.method == 'POST':
+            conn = get_db_connection()
+            if conn:
+                try:
+                    conn.execute(
+                        "INSERT INTO tbl_comments (news_url, commenter_name, comment_text, comment_date) VALUES (?, ?, ?, ?)",
+                        ("test-url", "test-user", "test comment", datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    )
+                    conn.commit()
+                    result["db_test"] = "Success"
+                except sqlite3.Error as e:
+                    result["db_test"] = f"Error: {str(e)}"
+                finally:
+                    conn.close()
+    except Exception as e:
+        result["error"] = str(e)
+    
+    return jsonify(result)
 
 if __name__ == '__main__':
     create_table()  # Ensure the table is created before running the app

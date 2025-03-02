@@ -57,6 +57,9 @@
 
         <!-- Search Form -->
         <form action="/search-news" method="POST" class="mb-4">
+            <!-- Add CSRF token -->
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
             <div class="input-group">
                 <input type="text" class="form-control" name="query" placeholder="Search for AI news" value="{{ query }}" required>
                 <div class="input-group-append">
@@ -120,11 +123,17 @@
         </div>
     </div>
 
+    <!-- CSRF token for AJAX requests -->
+    <div id="csrf-token" data-token="{{ csrf_token() }}" style="display: none;"></div>
+
     <script>
         // Toggle add/remove news functionality
         function toggleNews(newsTitle, newsImage, newsSummary, newsUrl, action, linkId) {
             const addButton = document.getElementById(`add-icon-${linkId}`);
             const deleteButton = document.getElementById(`delete-icon-${linkId}`);
+            
+            // Get CSRF token from hidden div
+            const csrf_token = document.getElementById('csrf-token').getAttribute('data-token');
 
             // AJAX call to add/remove news from the list
             const data = {
@@ -132,13 +141,15 @@
                 news_image: newsImage,
                 news_summary: newsSummary,
                 news_url: newsUrl,
-                action: action
+                action: action,
+                csrf_token: csrf_token  // Add CSRF token to the request
             };
 
             fetch('/toggle-news-list', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrf_token
                 },
                 body: new URLSearchParams(data)
             })
@@ -157,14 +168,25 @@
                     addButton.disabled = false;
                     deleteButton.disabled = true;
                 }
+                
+                // Hide the alert message after 3 seconds
+                setTimeout(() => {
+                    alertMessage.style.display = 'none';
+                }, 3000);
             })
             .catch(error => {
                 console.error('Error:', error);
+                // Show error alert
+                const alertMessage = document.getElementById('alert-message');
+                alertMessage.textContent = 'Error processing your request. Please try again.';
+                alertMessage.style.display = 'block';
+                alertMessage.className = 'alert alert-danger';
             });
         }
     </script>
 
     <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

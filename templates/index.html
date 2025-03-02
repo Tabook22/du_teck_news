@@ -111,37 +111,42 @@
         <p>{{ home_subtitle }}</p>
     </div>
 
-    <!-- Search Box and Button for Random News -->
-    <div class="container search-box text-center">
-        <!-- Search Criteria -->
-        <form action="/search-news" method="POST">
-            <div class="search-criteria">
-                <label>
-                    <input type="radio" name="timeframe" value="d1" checked> Today
-                </label>
-                <label>
-                    <input type="radio" name="timeframe" value="w1"> This Week
-                </label>
-                <label>
-                    <input type="radio" name="timeframe" value="m1"> This Month
-                </label>
-                <label>
-                    <input type="radio" name="timeframe" value="y1"> This Year
-                </label>
-            </div>
+<!-- Search Box and Button for Random News -->
+<div class="container search-box text-center">
+    <!-- Search Criteria -->
+    <form action="/search-news" method="POST">
+        <!-- Add CSRF token here -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="search-criteria">
+            <label>
+                <input type="radio" name="timeframe" value="d1" checked> Today
+            </label>
+            <label>
+                <input type="radio" name="timeframe" value="w1"> This Week
+            </label>
+            <label>
+                <input type="radio" name="timeframe" value="m1"> This Month
+            </label>
+            <label>
+                <input type="radio" name="timeframe" value="y1"> This Year
+            </label>
+        </div>
 
-            <!-- Search Form -->
-            <div class="form-inline justify-content-center">
-                <input class="form-control mr-2" type="text" name="query" placeholder="Search the latest AI News" required>
-                <button class="btn btn-primary" type="submit">Search</button>
-            </div>
-        </form>
+        <!-- Search Form -->
+        <div class="form-inline justify-content-center">
+            <input class="form-control mr-2" type="text" name="query" placeholder="Search the latest AI News" required>
+            <button class="btn btn-primary" type="submit">Search</button>
+        </div>
+    </form>
 
-        <!-- Button for Top Random AI News -->
-        <form action="/latest-ai-news" method="POST">
-            <button class="btn btn-success btn-lg btn-top-news" type="submit">Top Random AI News</button>
-        </form>
-    </div>
+    <!-- Button for Top Random AI News -->
+    <form action="/latest-ai-news" method="POST">
+        <!-- Add CSRF token to this form too -->
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="btn btn-success btn-lg btn-top-news" type="submit">Top Random AI News</button>
+    </form>
+</div>
 
     <!-- List of Top AI News Websites -->
     <div class="container website-list">
