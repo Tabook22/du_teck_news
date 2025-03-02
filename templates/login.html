@@ -38,6 +38,8 @@
             {% endif %}
 
             <form action="/login" method="POST">
+                <!-- Add this line to include the CSRF token -->
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="form-group">
                     <label for="username">Username:</label>
                     <input type="text" class="form-control" id="username" name="username" required>

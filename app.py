@@ -871,6 +871,7 @@ def search_magazine():
 
 #routes for managing comments
 @app.route('/add-comment', methods=['POST'])
+@csrf.exempt
 @login_required
 def add_comment():
     try:
