@@ -701,19 +701,31 @@ def latest_ai_news():
 
 # Route for the AI magazine page
 @app.route('/ai-magazine')
+@app.route('/ai-magazine')
 def ai_magazine():
     conn = get_db_connection()
     top_news, second_news, sidebar_news, magazine_date = None, [], [], 'N/A'
     highlights = []
     quick_links = []
-    advertisements = {'sidebar': [], 'bottom': [], 'between_articles': []}  # Initialize advertisement dictionary
+    advertisements = {'sidebar': [], 'bottom': [], 'between_articles': []}
+    department_name = "AI Department"
+    magazine_title = "AI Magazine"
+    news_subtitle = "Latest AI News and Updates"
     
     try:
         # Fetch the news categorized by location
         top_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Top News'").fetchone()
         second_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Second News'").fetchall()
         sidebar_news = conn.execute("SELECT * FROM tblmgz WHERE news_location = 'Sidebar List'").fetchall()
-
+        
+        # Fetch magazine metadata
+        metadata = conn.execute("SELECT * FROM tbl_magazine_metadata").fetchone()
+        if metadata:
+            magazine_date = metadata['publication_date']
+            department_name = metadata['department_name']
+            magazine_title = metadata['magazine_title']
+            news_subtitle = metadata['subtitle']
+        
         # Fetch AI Highlights
         highlights = conn.execute("SELECT * FROM tbl_ai_highlights").fetchall()
         
@@ -722,69 +734,31 @@ def ai_magazine():
         
         # Fetch active advertisements
         ad_rows = conn.execute("SELECT * FROM tbl_advertisements WHERE is_active = 1").fetchall()
-        
-        # Debug print to see what ads are being fetched
-        print(f"Found {len(ad_rows)} active advertisements")
-        
-        # Sort advertisements into categories
         for ad in ad_rows:
             if ad['position'] in advertisements:
                 advertisements[ad['position']].append(ad)
-                print(f"Added ad: {ad['title']} to position: {ad['position']}")
-            else:
-                print(f"Invalid position: {ad['position']}")
-
-        # Fetch the date from the first news entry in tblmgz (if available)
-        first_news = conn.execute("SELECT add_date FROM tblmgz ORDER BY add_date LIMIT 1").fetchone()
-        if first_news:
-            # Convert the date string to a datetime object
-            date_obj = datetime.strptime(first_news['add_date'], "%Y-%m-%d")
-            # Format the date to the desired format (e.g., 'Wed October 16, 2024')
-            magazine_date = date_obj.strftime("%a %B %d, %Y")
-        else:
-            magazine_date = datetime.now().strftime("%a %B %d, %Y")
-
-        # Load titles from config.json
-        try:
-            with open('config.json', 'r') as config_file:
-                config = json.load(config_file)
-                department_name = config.get('department_name', 'Computer Science Department')
-                magazine_title = config.get('magazine_title', 'AI Magazine')
-                news_subtitle = config.get('news_subtitle', 'AI Latest News')
-        except FileNotFoundError:
-            print("Error: config.json not found.")
-            department_name = 'Computer Science Department'
-            magazine_title = 'AI Magazine'
-            news_subtitle = 'AI Latest News'
-
+    
     except sqlite3.Error as e:
         print(f"Error fetching AI Magazine data: {e}")
-        department_name = 'Computer Science Department'
-        magazine_title = 'AI Magazine'
-        news_subtitle = 'AI Latest News'
+        # Log the error or handle it as appropriate for your application
+        flash("An error occurred while loading the magazine content.", "error")
     
     finally:
         if conn:
             conn.close()
     
-    # Debug print to check what's being passed to the template
-    print(f"Sidebar ads: {len(advertisements['sidebar'])}")
-    print(f"Bottom ads: {len(advertisements['bottom'])}")
-    print(f"Between article ads: {len(advertisements['between_articles'])}")
-    print(f"Quick links: {len(quick_links)}")
-    
     return render_template('aimgz.html', 
                            top_news=top_news, 
                            second_news=second_news, 
-                           sidebar_news=sidebar_news,
-                           magazine_date=magazine_date,
-                           department_name=department_name,
-                           magazine_title=magazine_title,
-                           news_subtitle=news_subtitle,
-                           highlights=highlights,
-                           quick_links=quick_links,
-                           sidebar_ads=advertisements['sidebar'],  # Pass advertisements to the template
-                           bottom_ads=advertisements['bottom'],
+                           sidebar_news=sidebar_news, 
+                           magazine_date=magazine_date, 
+                           department_name=department_name, 
+                           magazine_title=magazine_title, 
+                           news_subtitle=news_subtitle, 
+                           highlights=highlights, 
+                           quick_links=quick_links, 
+                           sidebar_ads=advertisements['sidebar'], 
+                           bottom_ads=advertisements['bottom'], 
                            between_ads=advertisements['between_articles'])
 
 @app.route('/remove-news', methods=['POST'])

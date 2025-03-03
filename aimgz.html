@@ -412,23 +412,6 @@
                 flex: 0 0 150px;
             }
         }
-
-        .ad-container {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.enlarge-btn {
-    display: block;
-    margin-top: 5px;
-    font-size: 0.8rem;
-}
-
-/* Optional hover effect for the advertisement */
-.ad-container img:hover {
-    opacity: 0.9;
-    cursor: pointer;
-}
     </style>
 </head>
 <body>
@@ -490,26 +473,7 @@
                         </div>
                         <hr>
                         {% endif %}
-<!-- For between_articles ads -->
-{% if between_ads %}
-    <div class="between-ads my-4">
-        <h5 class="sponsored-label">Sponsored</h5>
-        <div class="row">
-            {% for ad in between_ads %}
-                <div class="col-md-6 mb-3">
-                    <button class="btn btn-sm btn-light mt-1 enlarge-btn" data-toggle="modal" data-target="#adModal" data-img="{{ ad.image_url }}" data-title="{{ ad.title }}">
-                        <i class="fas fa-search-plus"></i> Enlarge
-                    </button>
-                    <div class="ad-container">
-                        <a href="{{ ad.link_url }}" target="_blank" title="{{ ad.title }}">
-                            <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid">
-                        </a>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-    </div>
-{% endif %}
+
                         <!-- Secondary News Section -->
                         <div class="secondary-news">
                             <h4 class="section-heading">Latest AI Updates</h4>
@@ -530,27 +494,6 @@
                             {% endfor %}
                         </div>
                     </div>
-                    <!-- For bottom ads -->
-{% if bottom_ads %}
-<div class="bottom-ads mt-4">
-    <h5>Sponsored</h5>
-    <div class="row">
-        {% for ad in bottom_ads %}
-            <div class="col-md-6 mb-3">
-                <button class="btn btn-sm btn-light mt-1 enlarge-btn" data-toggle="modal" data-target="#adModal" data-img="{{ ad.image_url }}" data-title="{{ ad.title }}">
-                    <i class="fas fa-search-plus"></i> Enlarge
-                </button>
-                <div class="ad-container">
-                    <a href="{{ ad.link_url }}" target="_blank" title="{{ ad.title }}">
-                        <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid">
-                    </a>
-
-                </div>
-            </div>
-        {% endfor %}
-    </div>
-</div>
-{% endif %}
                 </div>
 
                 <!-- Footer Section -->
@@ -595,42 +538,68 @@
                 </div>
 
                 <!-- Advertisement Section -->
-                <div class="sidebar-ads">
-                    {% if sidebar_ads %}
-                        {% for ad in sidebar_ads %}
-                            <div class="ad-container mb-3">
-                                <button class="btn btn-sm btn-light mt-1 enlarge-btn" data-toggle="modal" data-target="#adModal" data-img="{{ ad.image_url }}" data-title="{{ ad.title }}">
-                                    <i class="fas fa-search-plus"></i> Enlarge
-                                </button>
-                                <a href="{{ ad.link_url }}" target="_blank" title="{{ ad.title }}">
-                                    <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid">
-                                </a>
+                <div class="adv-section">
+                <!-- For sidebar ads -->
+                {% if sidebar_ads %}
+                {% for ad in sidebar_ads %}
+                    <div class="ad-container mb-4">
+                    <a href="{{ ad.link_url }}" target="_blank">
+                        <img src="{{ ad.image_url }}" alt="{{ ad.title }}" class="img-fluid">
+                    </a>
+                    </div>
+                {% endfor %}
+                {% endif %}
 
-                            </div>
-                        {% endfor %}
-                    {% endif %}
+
+
+
+
+                <!-- Debugging advertisements -->
+<div style="border: 1px solid red; padding: 10px; margin: 10px;">
+    <h4>Advertisement Debug</h4>
+    <p>Sidebar ads count: {{ sidebar_ads|length if sidebar_ads else 0 }}</p>
+    <p>Bottom ads count: {{ bottom_ads|length if bottom_ads else 0 }}</p>
+    <p>Between ads count: {{ between_ads|length if between_ads else 0 }}</p>
+    
+    {% if sidebar_ads %}
+      <h5>Sidebar ads data:</h5>
+      {% for ad in sidebar_ads %}
+        <div>
+          <p>Title: {{ ad.title }}</p>
+          <p>Image URL: {{ ad.image_url }}</p>
+          <p>Active: {{ ad.is_active }}</p>
+          <p>Position: {{ ad.position }}</p>
+          <img src="{{ ad.image_url }}" style="max-width:100px; border:1px solid blue;">
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No sidebar ads available.</p>
+    {% endif %}
+  </div>
+  <h3>In the Name of Allah Most Merci Most Mercifuall</h3>
+
+                    <img src="{{ url_for('static', filename='images/adv1.jpg') }}" alt="Advertisement" class="img-fluid">
                 </div>
-                <!-- This is for static Image-->
-                <img src="{{ url_for('static', filename='images/adv1.jpg') }}" alt="Advertisement" class="img-fluid">
                 
                 <!-- Quick Link Card -->
-                <div class="card mt-4">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0"><i class="fas fa-link mr-2"></i>Quick Links</h5>
-                    </div>
-                    <ul class="list-group list-group-flush">
+                <div class="quick-links-section">
+                    <h5>Quick Links</h5>
+                    <ul class="list-unstyled">
+                      {% if quick_links %}
                         {% for link in quick_links %}
-                        <li class="list-group-item">
+                          <li class="mb-2">
                             <a href="{{ link.link_url }}" target="_blank">
-                                <i class="{{ link.link_icon }} mr-2"></i>{{ link.link_title }}
+                              <i class="{{ link.link_icon }} mr-2"></i> {{ link.link_title }}
                             </a>
-                        </li>
+                          </li>
                         {% endfor %}
+                      {% else %}
+                        <li>No quick links available</li>
+                      {% endif %}
                     </ul>
-                </div>
+                  </div>
             </div>
         </div>
-        
     </div>
 
     <!-- Users Comments -->
@@ -684,30 +653,6 @@
     </div>
 </div>
 
-<!-- Advertisement Enlargement Modal -->
-<div class="modal fade" id="adModal" tabindex="-1" role="dialog" aria-labelledby="adModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="adModalLabel">Advertisement</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body text-center">
-          <img id="enlargedAdImage" src="" class="img-fluid" alt="Enlarged Advertisement">
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-
-
-
-  
 <!--Scripts to handel the user's comments -->
 <script>
    // Current article URL and title
@@ -875,29 +820,5 @@ function addNewCommentToList(comment) {
     <!-- Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    $(document).ready(function() {
-      // Ad image enlargement functionality
-      $('.enlarge-btn').on('click', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Get data from button
-        var imgSrc = $(this).data('img');
-        var imgTitle = $(this).data('title');
-        
-        console.log("Button clicked. Image: " + imgSrc + ", Title: " + imgTitle);
-        
-        // Update the modal content
-        $('#adModalLabel').text(imgTitle);
-        $('#enlargedAdImage').attr('src', imgSrc);
-        
-        // Manually show the modal
-        $('#adModal').modal('show');
-      });
-    });
-  </script>
-
 </body>
 </html>
